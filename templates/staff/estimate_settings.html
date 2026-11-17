@@ -1,0 +1,178 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_estimator' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to the estimator
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">Estimator settings</p>
+    <h2 class="staff-page-title">How ranges are adjusted</h2>
+    <p class="staff-page-lede">These multipliers apply across every service. Change one only when the shop's costs genuinely differ by vehicle type or damage level.</p>
+  </div>
+</div>
+
+<form method="post" class="staff-form-layout">
+  {% csrf_token %}
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Public switch</p>
+        <h3 class="staff-card-title">When visitors can see a price</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">power_settings_new</span></span>
+    </div>
+
+    <div class="staff-form-stack">
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <label class="staff-check-row" for="{{ form.site_enabled.id_for_label }}">
+        {{ form.site_enabled }}
+        <span>
+          <strong>Turn the public estimator on</strong>
+          <small>{{ form.site_enabled.help_text }}</small>
+        </span>
+      </label>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.rounding_step.id_for_label }}">Round prices to</label>
+          {{ form.rounding_step }}
+          {% if form.rounding_step.errors %}<p class="field-error">{{ form.rounding_step.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.rounding_step.help_text }}</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.prices_updated_on.id_for_label }}">Prices last reviewed</label>
+          {{ form.prices_updated_on }}
+          {% if form.prices_updated_on.errors %}<p class="field-error">{{ form.prices_updated_on.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.prices_updated_on.help_text }}</p>
+        </div>
+      </div>
+
+      <div class="staff-card-section">
+        <div class="staff-card-head staff-card-head-inline">
+          <div>
+            <p class="staff-card-kicker">Vehicle</p>
+            <h3 class="staff-card-title">Size and finish adjustments</h3>
+          </div>
+        </div>
+
+        <div class="staff-form-grid">
+          <div>
+            <label class="field-label" for="{{ form.car_multiplier.id_for_label }}">Car or small SUV</label>
+            {{ form.car_multiplier }}
+            {% if form.car_multiplier.errors %}<p class="field-error">{{ form.car_multiplier.errors.0 }}</p>{% endif %}
+            <p class="staff-field-help">{{ form.car_multiplier.help_text }}</p>
+          </div>
+          <div>
+            <label class="field-label" for="{{ form.suv_multiplier.id_for_label }}">SUV, van or pickup</label>
+            {{ form.suv_multiplier }}
+            {% if form.suv_multiplier.errors %}<p class="field-error">{{ form.suv_multiplier.errors.0 }}</p>{% endif %}
+            <p class="staff-field-help">{{ form.suv_multiplier.help_text }}</p>
+          </div>
+        </div>
+
+        <div class="staff-form-grid">
+          <div>
+            <label class="field-label" for="{{ form.luxury_multiplier.id_for_label }}">Luxury or premium</label>
+            {{ form.luxury_multiplier }}
+            {% if form.luxury_multiplier.errors %}<p class="field-error">{{ form.luxury_multiplier.errors.0 }}</p>{% endif %}
+            <p class="staff-field-help">{{ form.luxury_multiplier.help_text }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="staff-card-section">
+        <div class="staff-card-head staff-card-head-inline">
+          <div>
+            <p class="staff-card-kicker">Damage</p>
+            <h3 class="staff-card-title">Severity adjustments</h3>
+          </div>
+        </div>
+        <p class="staff-field-help">Only services with “Ask about damage severity” ticked use these numbers.</p>
+
+        <div class="staff-form-grid">
+          <div>
+            <label class="field-label" for="{{ form.severity_minor.id_for_label }}">Minor</label>
+            {{ form.severity_minor }}
+            {% if form.severity_minor.errors %}<p class="field-error">{{ form.severity_minor.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="field-label" for="{{ form.severity_moderate.id_for_label }}">Moderate</label>
+            {{ form.severity_moderate }}
+            {% if form.severity_moderate.errors %}<p class="field-error">{{ form.severity_moderate.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+
+        <div class="staff-form-grid">
+          <div>
+            <label class="field-label" for="{{ form.severity_severe.id_for_label }}">Severe</label>
+            {{ form.severity_severe }}
+            {% if form.severity_severe.errors %}<p class="field-error">{{ form.severity_severe.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.disclaimer.id_for_label }}">Disclaimer shown with every estimate</label>
+        {{ form.disclaimer }}
+        {% if form.disclaimer.errors %}<p class="field-error">{{ form.disclaimer.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.disclaimer.help_text }}</p>
+      </div>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          Save settings
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_estimator' %}">Cancel</a>
+      </div>
+    </div>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Before you switch it on</p>
+          <h3 class="staff-card-title">A quick checklist</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> At least one service has a base price and is switched on.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> The spread is wide enough to cover normal variation.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> The disclaimer still says it is not a quote.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> “Prices last reviewed” is set so visitors know the age of the numbers.</li>
+      </ul>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        MPI claims never show a shop range. The public page sends them to the claim navigator instead.
+      </p>
+    </section>
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Multiplier maths</p>
+          <h3 class="staff-card-title">Worked example</h3>
+        </div>
+      </div>
+      <p class="staff-field-help">Base $400, spread 20%, SUV ×1.15, moderate ×1.30, rounding to $5.</p>
+      <div class="staff-price-preview">
+        <strong>$400 × 0.80 × 1.15 × 1.30 = $478</strong>
+        <span class="staff-field-help">Low end rounds down to $475.</span>
+      </div>
+      <div class="staff-price-preview">
+        <strong>$400 × 1.20 × 1.15 × 1.30 = $718</strong>
+        <span class="staff-field-help">High end rounds up to $720.</span>
+      </div>
+    </section>
+  </aside>
+</form>
+{% endblock %}

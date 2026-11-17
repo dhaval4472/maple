@@ -1,0 +1,147 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_team_create' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+  <span class="hidden sm:inline">Add employee</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Shop floor</p>
+    <h2 class="staff-page-title">Team</h2>
+    <p class="staff-page-lede">Create the accounts your employees use to see their own work. Employees cannot open the request inbox, website content, analytics or Django admin.</p>
+  </div>
+  <div class="staff-page-actions">
+    <span class="staff-count-chip">{{ active_count }} active of {{ total_count }}</span>
+  </div>
+</div>
+
+<section class="staff-card staff-card-flush">
+  <div class="staff-card-head staff-card-head-padded">
+    <div>
+      <p class="staff-card-kicker">Employee accounts</p>
+      <h3 class="staff-card-title">Who can sign in</h3>
+    </div>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_work' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">assignment_turned_in</span>
+      Work board
+    </a>
+  </div>
+
+  {% if employees %}
+  <div class="staff-table-wrap hidden md:block">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th scope="col">Employee</th>
+          <th scope="col">Username</th>
+          <th scope="col">Contact</th>
+          <th scope="col">Open work</th>
+          <th scope="col">Account</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for employee in employees %}
+        <tr>
+          <td>
+            <span class="staff-table-name">{{ employee.get_full_name|default:employee.get_username }}</span>
+            {% if employee.email %}<span class="staff-table-phone">{{ employee.email }}</span>{% endif %}
+          </td>
+          <td>{{ employee.get_username }}</td>
+          <td>{{ employee.staff_profile.phone|default:"Not added" }}</td>
+          <td>
+            {% if employee.open_ticket_count %}
+            <a class="staff-table-ref" href="{% url 'staff_work' %}?employee={{ employee.pk }}">{{ employee.open_ticket_count }} open</a>
+            {% else %}
+            <span class="staff-muted-note">None</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if employee.is_active %}
+            <span class="staff-status is-good">Active</span>
+            {% else %}
+            <span class="staff-status is-muted">Deactivated</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="staff-team-actions">
+              <a class="staff-btn staff-btn-secondary" href="{% url 'staff_team_edit' employee.pk %}">Edit</a>
+              <a class="staff-btn staff-btn-secondary" href="{% url 'staff_team_password' employee.pk %}">Password</a>
+              <form method="post" action="{% url 'staff_team_toggle' employee.pk %}">
+                {% csrf_token %}
+                {% if employee.is_active %}
+                <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Deactivate {{ employee.get_full_name|default:employee.get_username }}? They will not be able to sign in.">Deactivate</button>
+                {% else %}
+                <button type="submit" class="staff-btn staff-btn-secondary">Activate</button>
+                {% endif %}
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="staff-mobile-list md:hidden">
+    {% for employee in employees %}
+    <div class="staff-mobile-row">
+      <span class="staff-mobile-row-top">
+        <span>
+          <strong>{{ employee.get_full_name|default:employee.get_username }}</strong>
+          <small>{{ employee.get_username }}{% if employee.staff_profile.phone %} · {{ employee.staff_profile.phone }}{% endif %}</small>
+        </span>
+        {% if employee.is_active %}
+        <span class="staff-status is-good">Active</span>
+        {% else %}
+        <span class="staff-status is-muted">Deactivated</span>
+        {% endif %}
+      </span>
+      <span class="staff-mobile-row-summary">
+        {% if employee.open_ticket_count %}{{ employee.open_ticket_count }} open work ticket{{ employee.open_ticket_count|pluralize }}{% else %}No open work tickets{% endif %}
+      </span>
+      <span class="staff-mobile-row-foot staff-team-mobile-actions">
+        <a class="staff-text-link" href="{% url 'staff_team_edit' employee.pk %}">Edit</a>
+        <a class="staff-text-link" href="{% url 'staff_team_password' employee.pk %}">Password</a>
+        <form method="post" action="{% url 'staff_team_toggle' employee.pk %}">
+          {% csrf_token %}
+          {% if employee.is_active %}
+          <button type="submit" class="staff-text-link staff-text-link-danger" data-confirm="Deactivate {{ employee.get_full_name|default:employee.get_username }}? They will not be able to sign in.">Deactivate</button>
+          {% else %}
+          <button type="submit" class="staff-text-link">Activate</button>
+          {% endif %}
+        </form>
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+    <h3>No employee accounts yet.</h3>
+    <p>Add your first employee so work can be assigned to them. The account is created here — there is no public sign-up.</p>
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_team_create' %}">Add employee</a>
+  </div>
+  {% endif %}
+</section>
+
+<section class="staff-card staff-help-card mt-3">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">Access rules</p>
+      <h3 class="staff-card-title">What employees can and cannot do</h3>
+    </div>
+  </div>
+  <ul class="staff-list-checks">
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> See only the work tickets assigned to them.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Start a job, add work notes, and mark it complete.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Update their own name, email, phone and password.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">cancel</span> Open the request inbox, reviews, repair stories or analytics.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">cancel</span> See another employee's tickets or the Django admin.</li>
+  </ul>
+</section>
+{% endblock %}

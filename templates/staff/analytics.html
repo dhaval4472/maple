@@ -1,0 +1,179 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-secondary" href="{{ export_url }}">
+  <span class="material-symbols-outlined" aria-hidden="true">download</span>
+  <span class="hidden sm:inline">Export CSV</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Insights</p>
+    <h2 class="staff-page-title">Website activity</h2>
+    <p class="staff-page-lede">First-party counts from this website only. No advertising profile and no third-party tracking script.</p>
+  </div>
+  <div class="staff-page-actions">
+    <div class="staff-range-switch" role="group" aria-label="Activity range">
+      <a class="{% if days == 7 %}is-active{% endif %}" href="?days=7">7 days</a>
+      <a class="{% if days == 30 %}is-active{% endif %}" href="?days=30">30 days</a>
+      <a class="{% if days == 90 %}is-active{% endif %}" href="?days=90">90 days</a>
+    </div>
+  </div>
+</div>
+
+<div class="staff-stat-grid staff-stat-grid-4">
+  <div class="staff-stat staff-stat-static">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ total_views }}</strong>
+      <span class="staff-stat-label">Page views</span>
+      <span class="staff-stat-hint">In the last {{ days }} days</span>
+    </span>
+  </div>
+  <div class="staff-stat staff-stat-static">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">group</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ sessions }}</strong>
+      <span class="staff-stat-label">Visitor sessions</span>
+      <span class="staff-stat-hint">Distinct browser sessions</span>
+    </span>
+  </div>
+  <div class="staff-stat staff-stat-static">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">bolt</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ total_events }}</strong>
+      <span class="staff-stat-label">Recorded events</span>
+      <span class="staff-stat-hint">Views and meaningful actions</span>
+    </span>
+  </div>
+  <div class="staff-stat staff-stat-static">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">trending_up</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ max_daily }}</strong>
+      <span class="staff-stat-label">Busiest day</span>
+      <span class="staff-stat-hint">Most events in one day</span>
+    </span>
+  </div>
+</div>
+
+<section class="staff-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">Daily rhythm</p>
+      <h3 class="staff-card-title">Activity over {{ days }} days</h3>
+    </div>
+    <span class="staff-count-chip">{{ start_day|date:"M j" }} – today</span>
+  </div>
+
+  {% if total_events %}
+  <div class="staff-chart" role="img" aria-label="Daily website activity chart">
+    <div class="staff-chart-bars">
+      {% for day in daily %}
+      <span class="staff-chart-bar" style="height: {{ day.pct }}%" title="{{ day.date|date:'M j' }}: {{ day.count }} event{{ day.count|pluralize }}">
+        <span class="staff-chart-tooltip">{{ day.count }}</span>
+      </span>
+      {% endfor %}
+    </div>
+    <div class="staff-chart-axis">
+      <span>{{ start_day|date:"M j" }}</span>
+      <span>{{ days }} days</span>
+      <span>Today</span>
+    </div>
+  </div>
+  {% else %}
+  <div class="staff-empty staff-empty-compact">
+    <span class="material-symbols-outlined" aria-hidden="true">monitoring</span>
+    <p><strong>No activity recorded yet.</strong> Page views will start appearing as visitors browse the public site.</p>
+  </div>
+  {% endif %}
+</section>
+
+<div class="staff-columns">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Most visited</p>
+        <h3 class="staff-card-title">Top pages</h3>
+      </div>
+    </div>
+    {% if top_pages %}
+    <div class="staff-bars">
+      {% for page in top_pages %}
+      <div class="staff-bar-row">
+        <span class="staff-bar-label">{{ page.label|truncatechars:34 }}</span>
+        <span class="staff-bar-track"><span class="staff-bar-fill" style="width: {{ page.pct }}%"></span></span>
+        <span class="staff-bar-count">{{ page.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="staff-muted-note">No page views in this range.</p>
+    {% endif %}
+  </section>
+
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">What visitors did</p>
+        <h3 class="staff-card-title">Event breakdown</h3>
+      </div>
+    </div>
+    {% if event_rows %}
+    <div class="staff-bars">
+      {% for event in event_rows %}
+      <div class="staff-bar-row">
+        <span class="staff-bar-label">{{ event.label|truncatechars:34 }}</span>
+        <span class="staff-bar-track"><span class="staff-bar-fill" style="width: {{ event.pct }}%"></span></span>
+        <span class="staff-bar-count">{{ event.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="staff-muted-note">No events in this range.</p>
+    {% endif %}
+  </section>
+</div>
+
+<section class="staff-card staff-card-flush">
+  <div class="staff-card-head staff-card-head-padded">
+    <div>
+      <p class="staff-card-kicker">Latest</p>
+      <h3 class="staff-card-title">Recent events</h3>
+    </div>
+  </div>
+  {% if recent %}
+  <div class="staff-table-wrap">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th scope="col">Event</th>
+          <th scope="col">Page</th>
+          <th scope="col">When</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in recent %}
+        <tr>
+          <td><span class="staff-event-name">{{ event.human_name }}</span></td>
+          <td class="staff-table-detail">{{ event.path|default:"/"|truncatechars:64 }}</td>
+          <td class="staff-table-date">{{ event.display_time }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="staff-empty staff-empty-compact">
+    <span class="material-symbols-outlined" aria-hidden="true">history</span>
+    <p>No events recorded in this range.</p>
+  </div>
+  {% endif %}
+</section>
+
+<p class="staff-note staff-note-page">
+  <span class="material-symbols-outlined" aria-hidden="true">shield</span>
+  This report uses only the website’s own analytics table. Visitors who send “Do Not Track” are not recorded. No Google Analytics or advertising ID is connected.
+</p>
+{% endblock %}

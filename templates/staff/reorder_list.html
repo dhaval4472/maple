@@ -1,0 +1,157 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-secondary" href="{% url 'staff_bulk_receive' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+  <span class="hidden sm:inline">Receive delivery</span>
+</a>
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_reorder_export' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">download</span>
+  <span class="hidden sm:inline">Export CSV</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · reorder</p>
+    <h2 class="staff-page-title">Reorder list</h2>
+    <p class="staff-page-lede">Every active part at or below its reorder level, grouped by supplier. The suggested order brings each part back up to its restock target.</p>
+  </div>
+  <div class="staff-page-actions">
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_parts' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+      All parts
+    </a>
+  </div>
+</div>
+
+<div class="staff-stat-grid stock-stat-grid stock-stat-grid-3">
+  <div class="staff-stat staff-stat-static {% if low_count %}stock-stat-alert{% endif %}">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ low_count }}</strong>
+      <span class="staff-stat-label">Parts to order</span>
+      <span class="staff-stat-hint">At or below the reorder level</span>
+    </span>
+  </div>
+  <div class="staff-stat staff-stat-static">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">priority_high</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ critical_count }}</strong>
+      <span class="staff-stat-label">Critical parts</span>
+      <span class="staff-stat-hint">Can stop a job</span>
+    </span>
+  </div>
+  <div class="staff-stat staff-stat-static">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">payments</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">${{ estimated_cost|floatformat:2 }}</strong>
+      <span class="staff-stat-label">Estimated cost</span>
+      <span class="staff-stat-hint">Suggested quantities × unit cost</span>
+    </span>
+  </div>
+</div>
+
+{% if groups %}
+{% for group in groups %}
+<section class="staff-card stock-supplier-group">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">
+        {% if group.supplier %}Supplier{% else %}Not assigned{% endif %}
+      </p>
+      <h3 class="staff-card-title">{% if group.supplier %}{{ group.supplier.name }}{% else %}No supplier set{% endif %}</h3>
+      {% if group.supplier %}
+      <p class="stock-supplier-meta">
+        {% if group.supplier.contact_name %}{{ group.supplier.contact_name }} · {% endif %}
+        {% if group.supplier.phone %}<a class="staff-contact-link" href="tel:{{ group.supplier.phone }}">{{ group.supplier.phone }}</a> · {% endif %}
+        {% if group.supplier.email %}<a class="staff-contact-link" href="mailto:{{ group.supplier.email }}">{{ group.supplier.email }}</a> · {% endif %}
+        {% if group.supplier.account_number %}Account {{ group.supplier.account_number }} · {% endif %}
+        Lead time {{ group.supplier.lead_time_days }} day{{ group.supplier.lead_time_days|pluralize }}
+      </p>
+      {% endif %}
+    </div>
+    <div class="stock-group-actions">
+      <button type="button" class="staff-btn staff-btn-secondary staff-btn-compact" data-copy-target="reorder-copy-{{ forloop.counter }}">
+        <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
+        Copy list
+      </button>
+      {% if group.supplier %}
+      <a class="staff-btn staff-btn-secondary staff-btn-compact" href="{% url 'staff_supplier_edit' group.supplier.pk %}">Supplier details</a>
+      <a class="staff-btn staff-btn-primary staff-btn-compact" href="{% url 'staff_bulk_receive' %}?supplier={{ group.supplier.pk }}">Receive delivery</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="staff-table-wrap">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th scope="col">Part</th>
+          <th scope="col">Bin</th>
+          <th scope="col" class="text-right">On hand</th>
+          <th scope="col" class="text-right">Reorder at</th>
+          <th scope="col" class="text-right">Restock to</th>
+          <th scope="col" class="text-right">Suggested order</th>
+          <th scope="col" class="text-right">Unit cost</th>
+          <th scope="col" class="text-right">Est. cost</th>
+          <th scope="col"><span class="sr-only">Open</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for part in group.parts %}
+        <tr>
+          <td>
+            <a class="staff-table-name" href="{% url 'staff_part_detail' part.pk %}">{{ part.name }}</a>
+            <span class="staff-table-phone">{{ part.sku }}{% if part.is_critical %} · critical{% endif %}</span>
+          </td>
+          <td class="stock-bin">{{ part.bin_location|default:"—" }}</td>
+          <td class="text-right stock-number {% if part.quantity_on_hand <= 0 %}stock-number-empty{% endif %}">{{ part.quantity_on_hand }}</td>
+          <td class="text-right">{{ part.reorder_level }}</td>
+          <td class="text-right">{{ part.reorder_target }}</td>
+          <td class="text-right"><strong class="stock-order-qty">{{ part.suggested_order_quantity }}</strong> <span class="stock-unit">{{ part.get_unit_display }}</span></td>
+          <td class="text-right stock-cost">${{ part.cost_price|floatformat:2 }}</td>
+          <td class="text-right stock-cost">${{ part.suggested_order_cost|floatformat:2 }}</td>
+          <td class="text-right">
+            <a class="staff-row-open" href="{% url 'staff_part_detail' part.pk %}" aria-label="Open {{ part.sku }}">
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <pre id="reorder-copy-{{ forloop.counter }}" class="sr-only">{% if group.supplier %}{{ group.supplier.name }}{% else %}No supplier set{% endif %}
+{% for part in group.parts %}{{ part.sku }} — {{ part.name }} — order {{ part.suggested_order_quantity }} {{ part.get_unit_display|lower }}{% if part.bin_location %} (bin {{ part.bin_location }}){% endif %}
+{% endfor %}</pre>
+</section>
+{% endfor %}
+{% else %}
+<section class="staff-card">
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+    <h3>Nothing needs ordering.</h3>
+    <p>Every tracked part is above its reorder level. The list updates automatically as parts are used and received.</p>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_parts' %}">Back to parts</a>
+  </div>
+</section>
+{% endif %}
+
+<section class="staff-card staff-help-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">How the list is built</p>
+      <h3 class="staff-card-title">Fewer surprises at the counter</h3>
+    </div>
+  </div>
+  <ul class="staff-list-checks">
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> A part appears when its reorder level is above zero and the shelf count is at or below that level.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> The suggested order is the restock target minus what is on hand, with a minimum of one.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Critical parts are pinned first so a stopped job is easy to spot.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Estimated cost uses the current unit cost and is a guide, not a supplier quote.</li>
+  </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+.venv/
+node_modules/
+source-assets/
+Maple-Leaf-Auto-Redesign-Package/
+stitch_maple_leaf_auto_website_design/
+scripts/
+static/downloads/
+staticfiles/
+media/
+db.sqlite3
+__pycache__/
+*.py[cod]
+.env
+.git/
+package.json
+package-lock.json
+tailwind.config.js

@@ -1,0 +1,117 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Account</p>
+    <h2 class="staff-page-title">My account</h2>
+    <p class="staff-page-lede">Update the name and email attached to your staff sign-in, or change your password.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Profile</p>
+        <h3 class="staff-card-title">Your details</h3>
+      </div>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.first_name.id_for_label }}">First name</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<p class="field-error">{{ form.first_name.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.last_name.id_for_label }}">Last name</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<p class="field-error">{{ form.last_name.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.email.id_for_label }}">Email address</label>
+          {{ form.email }}
+          {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Used for account contact only. Shop request notifications go to the address in settings.</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.phone.id_for_label }}">Phone number</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<p class="field-error">{{ form.phone.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Optional. The shop owner can use this if they need to reach you about work.</p>
+        </div>
+      </div>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          Save details
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Access</p>
+          <h3 class="staff-card-title">Sign-in</h3>
+        </div>
+      </div>
+      <dl class="staff-meta-list">
+        <div><dt>Username</dt><dd>{{ staff_user.get_username }}</dd></div>
+        <div><dt>Role</dt><dd>{{ staff_role_label }}{% if staff_user.is_superuser %} · Owner / superuser{% endif %}</dd></div>
+        <div><dt>Last sign-in</dt><dd>{{ last_login_label|default:"This is your first sign-in" }}</dd></div>
+      </dl>
+      <div class="staff-account-actions">
+        <a class="staff-btn staff-btn-secondary w-full" href="{% url 'staff_password_change' %}">
+          <span class="material-symbols-outlined" aria-hidden="true">key</span>
+          Change password
+        </a>
+        {% if staff_user.is_superuser %}
+        <a class="staff-btn staff-btn-secondary w-full" href="{% url 'admin:index' %}" target="_blank" rel="noopener">
+          <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+          Open Django admin
+        </a>
+        {% endif %}
+        <form method="post" action="{% url 'staff_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="staff-btn staff-btn-secondary w-full">
+            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+            Sign out
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Sharing access</p>
+          <h3 class="staff-card-title">{% if staff_is_master %}Adding an employee{% else %}Need a hand?{% endif %}</h3>
+        </div>
+      </div>
+      {% if staff_is_master %}
+      <p class="staff-help-copy">Create employee accounts on the Team page. Employees can only see the work tickets you assign to them — never the request inbox, reviews, website activity or other people's work.</p>
+      <a class="staff-text-link" href="{% url 'staff_team' %}">
+        Open the Team page
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+      </a>
+      {% else %}
+      <p class="staff-help-copy">Your account is managed by the shop owner. Ask them if you need help with a password, a work ticket, or access.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

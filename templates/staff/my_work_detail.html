@@ -1,0 +1,237 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_my_work' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to my work
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="staff-status {{ status_class }}">{{ ticket.get_status_display }}</span>
+      {% if ticket.is_overdue %}<span class="staff-status is-bad">Overdue</span>{% endif %}
+      <span class="staff-ref">{{ ticket.reference }}</span>
+    </div>
+    <h2 class="staff-page-title mt-3">{{ ticket.work_type }}</h2>
+    <p class="staff-page-lede">{{ ticket.vehicle }}{% if ticket.customer_name %} · {{ ticket.customer_name }}{% endif %}</p>
+  </div>
+  <div class="staff-page-actions">
+    {% if can_start %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="start"/>
+      <button type="submit" class="staff-btn staff-btn-primary">
+        <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+        Start working
+      </button>
+    </form>
+    {% elif can_complete %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="complete"/>
+      <button type="submit" class="staff-btn staff-btn-primary" data-confirm="Mark {{ ticket.reference }} complete? The shop owner can reopen it if needed.">
+        <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+        Mark complete
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if ticket.status == 'completed' %}
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+  <div>
+    <strong>This job is complete.</strong>
+    <p>Finished{% if completed_label %} {{ completed_label }}{% endif %}. The shop owner can reopen it if anything was missed.</p>
+  </div>
+</div>
+{% elif ticket.status == 'cancelled' %}
+<div class="staff-banner staff-banner-warning">
+  <span class="material-symbols-outlined" aria-hidden="true">cancel</span>
+  <div>
+    <strong>This ticket was cancelled by the shop owner.</strong>
+    <p>You can still read the details. Ask the shop owner if the job needs to be reopened.</p>
+  </div>
+</div>
+{% endif %}
+
+<div class="staff-detail-grid">
+  <div class="staff-detail-main">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Job details</p>
+          <h3 class="staff-card-title">What you are working on</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">handyman</span></span>
+      </div>
+
+      <dl class="staff-detail-list">
+        <div class="staff-detail-item">
+          <dt>Vehicle</dt>
+          <dd>{{ ticket.vehicle }}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Type of work</dt>
+          <dd>{{ ticket.work_type }}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Due date</dt>
+          <dd>{% if ticket.due_date %}{{ ticket.due_date|date:"M j, Y" }}{% if ticket.is_overdue %} <span class="staff-status is-bad">Overdue</span>{% endif %}{% else %}<span class="staff-detail-empty">No due date</span>{% endif %}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Customer</dt>
+          <dd>{% if ticket.customer_name %}{{ ticket.customer_name }}{% elif ticket.booking %}{{ ticket.booking.full_name }}{% else %}<span class="staff-detail-empty">Not added</span>{% endif %}</dd>
+        </div>
+        <div class="staff-detail-item is-wide">
+          <dt>Customer phone</dt>
+          <dd>
+            {% if ticket.customer_phone %}
+            <a class="staff-contact-link" href="tel:{{ ticket.customer_phone }}">{{ ticket.customer_phone }}</a>
+            {% elif ticket.booking %}
+            <a class="staff-contact-link" href="tel:{{ ticket.booking.phone_number }}">{{ ticket.booking.phone_number }}</a>
+            {% else %}
+            <span class="staff-detail-empty">Not added</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">From the shop owner</p>
+          <h3 class="staff-card-title">Instructions</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">sticky_note_2</span></span>
+      </div>
+      {% if ticket.instructions %}
+      <p class="staff-detail-value">{{ ticket.instructions|linebreaksbr }}</p>
+      {% else %}
+      <p class="staff-muted-note">No extra instructions. Ask the shop owner if anything is unclear before starting.</p>
+      {% endif %}
+    </section>
+
+    {% include "staff/_parts_used.html" with ticket=ticket parts_rows=parts_rows can_add_parts=can_add_parts can_manage=staff_is_master %}
+
+    {% if ticket.booking %}
+    <section class="staff-card staff-card-muted">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Customer request</p>
+          <h3 class="staff-card-title">Booking notes</h3>
+        </div>
+      </div>
+      <dl class="staff-detail-list">
+        <div class="staff-detail-item"><dt>Customer</dt><dd>{{ ticket.booking.full_name }}</dd></div>
+        <div class="staff-detail-item"><dt>Service requested</dt><dd>{{ ticket.booking.service }}</dd></div>
+        <div class="staff-detail-item"><dt>Preferred drop-off</dt><dd>{{ ticket.booking.preferred_date|date:"M j, Y" }} · {{ ticket.booking.preferred_window }}</dd></div>
+        <div class="staff-detail-item"><dt>Reference</dt><dd>{{ ticket.booking.reference }}</dd></div>
+        <div class="staff-detail-item is-wide">
+          <dt>What the customer told the shop</dt>
+          <dd>{% if ticket.booking.notes %}<span class="staff-detail-value">{{ ticket.booking.notes|linebreaksbr }}</span>{% else %}<span class="staff-detail-empty">No customer notes</span>{% endif %}</dd>
+        </div>
+      </dl>
+    </section>
+    {% endif %}
+
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Your record</p>
+          <h3 class="staff-card-title">Work notes</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">edit_note</span></span>
+      </div>
+
+      {% if can_note %}
+      <form method="post" class="staff-form-stack">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_note"/>
+        {% if note_form.non_field_errors %}
+        <div class="staff-form-error" role="alert">{{ note_form.non_field_errors.0 }}</div>
+        {% endif %}
+        <div>
+          <label class="field-label" for="{{ note_form.employee_notes.id_for_label }}">What you found or did</label>
+          {{ note_form.employee_notes }}
+          {% if note_form.employee_notes.errors %}<p class="field-error">{{ note_form.employee_notes.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">The shop owner can read these notes. Add anything that matters for the next job on this vehicle.</p>
+        </div>
+        <div class="staff-form-actions">
+          <button type="submit" class="staff-btn staff-btn-secondary">
+            <span class="material-symbols-outlined" aria-hidden="true">save</span>
+            Save notes
+          </button>
+        </div>
+      </form>
+      {% elif ticket.employee_notes %}
+      <p class="staff-detail-value">{{ ticket.employee_notes|linebreaksbr }}</p>
+      {% else %}
+      <p class="staff-muted-note">This ticket was cancelled, so notes are read-only.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="staff-detail-side">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Next step</p>
+          <h3 class="staff-card-title">
+        {% if can_start %}Start when you are ready{% elif can_complete %}Finish the job{% elif ticket.status == 'completed' %}Job complete{% elif ticket.status == 'cancelled' %}Ticket cancelled{% else %}Job in progress{% endif %}
+          </h3>
+        </div>
+      </div>
+      <ol class="staff-steps">
+        {% if can_start %}
+        <li><span>1</span><p>Read the vehicle, work type and instructions carefully.</p></li>
+        <li><span>2</span><p>Press <strong>Start working</strong> when you actually begin.</p></li>
+        <li><span>3</span><p>Add notes as you go, then press <strong>Mark complete</strong> when finished.</p></li>
+        {% elif can_complete %}
+        <li><span>1</span><p>The job is marked in progress. Keep your notes up to date.</p></li>
+        <li><span>2</span><p>When everything is finished, press <strong>Mark complete</strong>.</p></li>
+        <li><span>3</span><p>The shop owner will see the completion time and your notes.</p></li>
+        {% elif ticket.status == 'completed' %}
+        <li><span>1</span><p>This job is finished and saved in your history.</p></li>
+        <li><span>2</span><p>If something was missed, ask the shop owner to reopen it.</p></li>
+        {% else %}
+        <li><span>1</span><p>The shop owner cancelled this ticket.</p></li>
+        <li><span>2</span><p>Ask them to reopen it if the work still needs doing.</p></li>
+        {% endif %}
+      </ol>
+    </section>
+
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Timing</p>
+          <h3 class="staff-card-title">Your ticket</h3>
+        </div>
+      </div>
+      <dl class="staff-meta-list">
+        <div><dt>Assigned</dt><dd>{{ created_label }}</dd></div>
+        <div><dt>Due</dt><dd>{% if ticket.due_date %}{{ ticket.due_date|date:"M j, Y" }}{% else %}No due date{% endif %}</dd></div>
+        <div><dt>Started</dt><dd>{% if started_label %}{{ started_label }}{% else %}Not started{% endif %}</dd></div>
+        <div><dt>Completed</dt><dd>{% if completed_label %}{{ completed_label }}{% else %}Not completed{% endif %}</dd></div>
+        <div class="is-wide"><dt>Reference</dt><dd>{{ ticket.reference }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Need help?</p>
+          <h3 class="staff-card-title">Ask the shop owner</h3>
+        </div>
+      </div>
+      <p class="staff-help-copy">If a vehicle, part or instruction is unclear, stop and ask before guessing. The ticket can be edited or reassigned by the shop owner.</p>
+      <a class="staff-text-link" href="{% url 'staff_account' %}">Open my account <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+    </section>
+  </aside>
+</div>
+{% endblock %}

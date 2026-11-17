@@ -1,0 +1,346 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}About Maple Leaf Auto Body & Glass | North End Winnipeg{% endblock %}
+{% block meta_description %}Maple Leaf Auto Body & Glass is a family-owned MPI Direct Repair shop on Dufferin Ave in North End Winnipeg, serving cars, SUVs and pickups.{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="bg-surface pt-8 pb-14 lg:pt-12 lg:pb-20">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">About</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start mt-6">
+      <div class="lg:col-span-6">
+        <p class="stamp text-primary">About the shop</p>
+        <h1 class="display-2 mt-3 max-w-[14ch]">Family-owned. North End. Straight answers.</h1>
+        <p class="lede mt-5 max-w-[48ch] text-on-surface-variant">
+          Maple Leaf Auto Body &amp; Glass is locally owned and operated in Winnipeg. We take the time to explain what your vehicle needs, what it will involve, and what happens next.
+        </p>
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <button type="button" class="btn-primary h-12 px-5" data-callback-open>
+            Talk to the shop
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+          </button>
+          <a class="btn-secondary h-12 px-5" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">call</span>
+            (204) 586-8253
+          </a>
+        </div>
+
+        <dl class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 border-t border-surface-container-high pt-5">
+          <div>
+            <dt class="stamp text-on-surface-variant">Find us</dt>
+            <dd class="text-sm font-semibold mt-1">492 Dufferin Ave, Winnipeg</dd>
+          </div>
+          <div>
+            <dt class="stamp text-on-surface-variant">Vehicles</dt>
+            <dd class="text-sm font-semibold mt-1">Cars, SUVs &amp; light pickups</dd>
+          </div>
+          <div>
+            <dt class="stamp text-on-surface-variant">Claims</dt>
+            <dd class="text-sm font-semibold mt-1">MPI Direct Repair</dd>
+          </div>
+          <div>
+            <dt class="stamp text-on-surface-variant">Hours</dt>
+            <dd class="text-sm font-semibold mt-1 tabular-nums"><span data-shop-status>Mon–Sat · 9–6</span></dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="lg:col-span-6">
+        <figure class="photo-reveal relative rounded-lg overflow-hidden border border-surface-container-high min-h-[300px] sm:min-h-[400px]" data-reveal="photo">
+          <img src="{% static 'img/package/car-repair-1.webp' %}" alt="Vehicle body repair in progress at Maple Leaf Auto Body & Glass" class="absolute inset-0 w-full h-full object-cover" loading="lazy"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent"></div>
+          {% include "mapleleaf/partials/inspect_overlay.html" %}
+          <figcaption class="photo-reveal-caption absolute bottom-0 left-0 right-0 p-5 sm:p-6 text-white">
+            <p class="stamp text-white/60">Dufferin Ave</p>
+            <p class="font-headline font-bold text-lg tracking-tight mt-1">Body, glass and mechanical work under one roof.</p>
+          </figcaption>
+        </figure>
+        <figure class="cert-plate mt-4">
+          <div class="cert-plate-head">
+            <span class="stamp text-on-surface-variant">Certification</span>
+            <span class="cert-code">MPI · DRP</span>
+          </div>
+          <div class="cert-plate-body">
+            <img src="{% static 'img/package/accredit.webp' %}" alt="MPI accreditation" class="w-full max-w-[300px] h-auto object-contain" loading="lazy"/>
+            <span class="cert-seal" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><use href="#ico-safety"></use></svg>
+            </span>
+          </div>
+          <figcaption class="cert-plate-foot">
+            <span class="status-dot status-dot-sm" aria-hidden="true"></span>
+            MPI Direct Repair shop · Winnipeg, MB
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY / PRINCIPLES -->
+<section class="section bg-surface-container-low border-y border-surface-container" id="story" data-rail-label="The shop">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+      <div class="lg:col-span-7">
+        <p class="stamp text-primary">A local shop you can talk to</p>
+        <h2 class="h2 mt-2 max-w-[20ch]">Your vehicle is a significant investment.</h2>
+        <div class="mt-5 space-y-4 text-on-surface-variant leading-relaxed max-w-[58ch]">
+          <p>Whether it's a minor dent, a cracked windshield, a warning light or a collision repair, we take the time to explain your options and keep things straightforward.</p>
+          <p>If you have an MPI claim, bring it in and we'll discuss the repair assessment together so you know what to expect. We handle the shop side; MPI makes the coverage decision.</p>
+          <p>No pressure to add work you didn't ask for. If we find something during teardown, we call you first.</p>
+        </div>
+      </div>
+      <div class="lg:col-span-5">
+        <div class="border-t border-surface-container-high" data-stagger>
+          <div class="principle">
+            <span class="principle-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-chat"></use></svg></span>
+            <div>
+              <h3 class="font-semibold text-[15px]">Explain before we repair</h3>
+              <p class="text-sm text-on-surface-variant mt-1 leading-relaxed">You hear what we found, what it means, and what the options are.</p>
+            </div>
+          </div>
+          <div class="principle">
+            <span class="principle-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-phone"></use></svg></span>
+            <div>
+              <h3 class="font-semibold text-[15px]">Call before extra work</h3>
+              <p class="text-sm text-on-surface-variant mt-1 leading-relaxed">If the scope changes, you approve it before we keep going.</p>
+            </div>
+          </div>
+          <div class="principle">
+            <span class="principle-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-clipboard"></use></svg></span>
+            <div>
+              <h3 class="font-semibold text-[15px]">Keep the claim moving</h3>
+              <p class="text-sm text-on-surface-variant mt-1 leading-relaxed">We coordinate the estimate, parts and repair schedule with you.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOP FLOOR TABS -->
+<section class="section" data-tabs="floor" id="floor" data-rail-label="On the floor">
+  <div class="page-shell">
+    <div class="max-w-[54ch]">
+      <p class="stamp text-primary">On the floor</p>
+      <h2 class="h2 mt-2">Three kinds of work, one set of eyes.</h2>
+      <p class="text-on-surface-variant mt-4 leading-relaxed">Pick an area to see how it fits into your repair. If the job crosses disciplines, it stays in the building.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mt-8">
+      <div class="lg:col-span-4">
+        <div class="floor-tabs" role="tablist" aria-label="Shop areas" aria-orientation="vertical" data-stagger>
+          <button type="button" class="floor-tab is-active" role="tab" id="floor-tab-1" aria-selected="true" aria-controls="floor-panel-1" data-tab="1">
+            <span class="floor-tab-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-collision"></use></svg></span>
+            <span class="min-w-0">
+              <span class="block font-semibold text-[15px]">Body &amp; glass</span>
+              <span class="block text-sm text-on-surface-variant mt-0.5">Collision, panels, windshields</span>
+            </span>
+            <span class="material-symbols-outlined floor-tab-arrow" aria-hidden="true">arrow_forward</span>
+          </button>
+          <button type="button" class="floor-tab" role="tab" id="floor-tab-2" aria-selected="false" aria-controls="floor-panel-2" data-tab="2" tabindex="-1">
+            <span class="floor-tab-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-paint"></use></svg></span>
+            <span class="min-w-0">
+              <span class="block font-semibold text-[15px]">Paint &amp; finish</span>
+              <span class="block text-sm text-on-surface-variant mt-0.5">Colour match, clear coat</span>
+            </span>
+            <span class="material-symbols-outlined floor-tab-arrow" aria-hidden="true">arrow_forward</span>
+          </button>
+          <button type="button" class="floor-tab" role="tab" id="floor-tab-3" aria-selected="false" aria-controls="floor-panel-3" data-tab="3" tabindex="-1">
+            <span class="floor-tab-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-mechanical"></use></svg></span>
+            <span class="min-w-0">
+              <span class="block font-semibold text-[15px]">Mechanical</span>
+              <span class="block text-sm text-on-surface-variant mt-0.5">Diagnostics, brakes, maintenance</span>
+            </span>
+            <span class="material-symbols-outlined floor-tab-arrow" aria-hidden="true">arrow_forward</span>
+          </button>
+        </div>
+
+        <div class="mt-4 text-sm text-on-surface-variant leading-relaxed border-l-2 border-primary/40 pl-4">
+          Not sure which area your issue belongs to? Start with a phone call. We'll point you in the right direction.
+        </div>
+      </div>
+
+      <div class="lg:col-span-8">
+        <div class="tab-panel is-active" role="tabpanel" id="floor-panel-1" aria-labelledby="floor-tab-1" data-tab-panel="1">
+          <figure class="floor-photo" data-reveal="scan">
+            <img src="{% static 'img/package/car-repair.webp' %}" alt="Collision and body repair work at the shop" loading="lazy"/>
+            {% include "mapleleaf/partials/inspect_overlay.html" %}
+            <figcaption class="process-caption">
+              <span class="stamp text-white/70">Body &amp; glass</span>
+              <p class="font-headline font-bold text-lg text-white mt-1">Straight panels, clean glass, factory fit.</p>
+            </figcaption>
+          </figure>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">What comes through here</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">Collision damage, dent and panel repair, bumper work, windshield chips and full glass replacement.</p>
+            </div>
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">What you get</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">A written estimate, a repair plan and a final walk-around before you take the keys back.</p>
+            </div>
+          </div>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-5" href="{% url 'services' %}#collision">
+            Body &amp; glass services
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="floor-panel-2" aria-labelledby="floor-tab-2" data-tab-panel="2" hidden>
+          <figure class="floor-photo" data-reveal="scan">
+            <img src="{% static 'img/package/painting.webp' %}" alt="Automotive paint and refinishing" loading="lazy"/>
+            {% include "mapleleaf/partials/inspect_overlay.html" %}
+            <figcaption class="process-caption">
+              <span class="stamp text-white/70">Paint &amp; finish</span>
+              <p class="font-headline font-bold text-lg text-white mt-1">The colour match is the quiet part.</p>
+            </figcaption>
+          </figure>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">Prep first</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">Surface prep, primer and masking decide how the finish holds up. We don't rush it.</p>
+            </div>
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">Match, spray, cure</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">Computerized colour matching, booth application and clear coat, then final polish.</p>
+            </div>
+          </div>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-5" href="{% url 'services' %}#paint">
+            Dent repair &amp; painting
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="floor-panel-3" aria-labelledby="floor-tab-3" data-tab-panel="3" hidden>
+          <figure class="floor-photo" data-reveal="scan">
+            <img src="{% static 'img/package/car-on-lift.webp' %}" alt="Vehicle on a lift for mechanical inspection" loading="lazy"/>
+            {% include "mapleleaf/partials/inspect_overlay.html" %}
+            <figcaption class="process-caption">
+              <span class="stamp text-white/70">Mechanical</span>
+              <p class="font-headline font-bold text-lg text-white mt-1">Find the cause before replacing the part.</p>
+            </figcaption>
+          </figure>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">Diagnostics</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">OBD-II scans, live data and electrical checks, explained in plain language.</p>
+            </div>
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">Maintenance</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">Brakes, oil, safety inspections, suspension and the noises you can't place.</p>
+            </div>
+          </div>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-5" href="{% url 'services' %}#diagnostics">
+            Mechanical services
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VISIT -->
+<section class="section bg-surface-container-low border-y border-surface-container" id="visit" data-rail-label="Visit">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+      <div class="lg:col-span-7">
+        <div class="rounded-lg overflow-hidden border border-surface-container-high bg-white">
+          <iframe title="Maple Leaf Auto Body & Glass location" src="https://maps.google.com/maps?q=492%20Dufferin%20Ave.%2C%20Winnipeg%2C%20MB%20R2W%202Y6&t=m&z=14&output=embed&iwloc=near" class="w-full" height="360" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+      <div class="lg:col-span-5">
+        <p class="stamp text-primary">Visit the shop</p>
+        <h2 class="h2 mt-2 max-w-[16ch]">Drop-off parking is on site.</h2>
+        <p class="text-on-surface-variant mt-4 leading-relaxed">We're on Dufferin Ave in the North End. Call before coming in for an estimate so we can set aside time for your vehicle.</p>
+
+        <div class="mt-6 space-y-4" data-stagger>
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5" aria-hidden="true">location_on</span>
+            <div class="flex-1">
+              <p class="text-sm font-semibold">492 Dufferin Ave, Winnipeg, MB R2W 2Y6</p>
+              <div class="flex flex-wrap items-center gap-3 mt-2">
+                <button type="button" class="copy-btn" data-copy="492 Dufferin Ave, Winnipeg, MB R2W 2Y6" data-copy-message="Address copied">
+                  <span class="material-symbols-outlined text-[15px]" aria-hidden="true">content_copy</span>
+                  Copy address
+                </button>
+                <a class="text-link text-[12px] inline-flex items-center gap-1" href="https://maps.google.com/?q=492+Dufferin+Ave,+Winnipeg,+MB+R2W+2Y6" target="_blank" rel="noopener noreferrer">
+                  Directions
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">open_in_new</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5" aria-hidden="true">schedule</span>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <p class="text-sm font-semibold">Shop hours</p>
+                <span class="inline-flex items-center gap-1.5 text-[11px] text-on-surface-variant"><span class="status-dot status-dot-sm" aria-hidden="true"></span><span data-shop-status>Checking…</span></span>
+              </div>
+              <dl class="hours-table mt-2">
+                <div data-day-row="Mon"><dt>Monday</dt><dd>9:00 AM – 6:00 PM</dd></div>
+                <div data-day-row="Tue"><dt>Tuesday</dt><dd>9:00 AM – 6:00 PM</dd></div>
+                <div data-day-row="Wed"><dt>Wednesday</dt><dd>9:00 AM – 6:00 PM</dd></div>
+                <div data-day-row="Thu"><dt>Thursday</dt><dd>9:00 AM – 6:00 PM</dd></div>
+                <div data-day-row="Fri"><dt>Friday</dt><dd>9:00 AM – 6:00 PM</dd></div>
+                <div data-day-row="Sat"><dt>Saturday</dt><dd>9:00 AM – 6:00 PM</dd></div>
+                <div data-day-row="Sun"><dt>Sunday</dt><dd class="text-on-surface-variant">Closed</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5" aria-hidden="true">call</span>
+            <div class="flex-1">
+              <p class="text-sm font-semibold">(204) 586-8253</p>
+              <div class="flex flex-wrap items-center gap-3 mt-2">
+                <button type="button" class="copy-btn" data-copy="(204) 586-8253" data-copy-message="Phone number copied">
+                  <span class="material-symbols-outlined text-[15px]" aria-hidden="true">content_copy</span>
+                  Copy number
+                </button>
+                <a class="text-link text-[12px] inline-flex items-center gap-1" href="tel:+12045868253">Call now</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary h-11 px-4 mt-6" data-callback-open>Request a callback</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" id="next-step" data-rail-label="Next step">
+  <div class="page-shell">
+    <div class="cta-band">
+      {% include "mapleleaf/partials/cta_art.html" %}
+      <div class="max-w-[34ch]">
+        <p class="stamp text-white/85">Next step</p>
+        <h2 class="h2 text-white mt-2">Let's look at your vehicle together.</h2>
+        <p class="text-white/75 mt-3 leading-relaxed">Call the shop or leave your number. We'll call back during business hours and help you work out the next step.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row lg:flex-col gap-3 w-full sm:w-auto shrink-0">
+        <button type="button" class="btn-on-red h-12 px-5" data-callback-open data-magnetic="4">
+          Request a callback
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+        </button>
+        <a class="h-12 px-5 inline-flex items-center justify-center gap-2 rounded border border-white/35 text-white text-sm font-semibold hover:bg-white/10 transition-colors" href="tel:+12045868253">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+          (204) 586-8253
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

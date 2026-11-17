@@ -1,0 +1,112 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_supplier_create' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">add</span>
+  <span class="hidden sm:inline">New supplier</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · suppliers</p>
+    <h2 class="staff-page-title">Suppliers</h2>
+    <p class="staff-page-lede">Suppliers group the reorder list and keep contact details in one place. Archiving a supplier keeps it on past parts but removes it from new choices.</p>
+  </div>
+  <div class="staff-page-actions">
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_parts' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+      All parts
+    </a>
+  </div>
+</div>
+
+{% if no_supplier_parts %}
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">info</span>
+  <div>
+    <strong>{{ no_supplier_parts }} active part{{ no_supplier_parts|pluralize }} have no supplier.</strong>
+    <p>They still appear on the reorder list under “No supplier set”. Add a supplier on the part if you want it grouped for ordering.</p>
+  </div>
+</div>
+{% endif %}
+
+<section class="staff-card">
+  {% if suppliers %}
+  <div class="staff-table-wrap">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th scope="col">Supplier</th>
+          <th scope="col">Contact</th>
+          <th scope="col">Phone</th>
+          <th scope="col" class="text-right">Active parts</th>
+          <th scope="col" class="text-right">To reorder</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for supplier in suppliers %}
+        <tr>
+          <td>
+            <span class="staff-table-name">{{ supplier.name }}</span>
+            <span class="staff-table-phone">{% if supplier.account_number %}Account {{ supplier.account_number }}{% elif supplier.lead_time_days %}Lead time {{ supplier.lead_time_days }} day{{ supplier.lead_time_days|pluralize }}{% else %}No account number{% endif %}</span>
+          </td>
+          <td>{{ supplier.contact_name|default:"—" }}</td>
+          <td>{% if supplier.phone %}<a class="staff-contact-link" href="tel:{{ supplier.phone }}">{{ supplier.phone }}</a>{% else %}—{% endif %}</td>
+          <td class="text-right stock-number">{{ supplier.active_parts }}</td>
+          <td class="text-right">{% if supplier.low_parts %}<span class="staff-status is-warn">{{ supplier.low_parts }}</span>{% else %}<span class="stock-muted">0</span>{% endif %}</td>
+          <td><span class="staff-status {% if supplier.is_active %}is-good{% else %}is-muted{% endif %}">{% if supplier.is_active %}Active{% else %}Archived{% endif %}</span></td>
+          <td class="text-right">
+            <div class="staff-team-actions">
+              <a class="staff-btn staff-btn-secondary" href="{% url 'staff_supplier_edit' supplier.pk %}">
+                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                Edit
+              </a>
+              <form method="post" action="{% url 'staff_supplier_toggle' supplier.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="staff-btn {% if supplier.is_active %}staff-btn-danger-ghost{% else %}staff-btn-secondary{% endif %}"{% if supplier.is_active %} data-confirm="Archive {{ supplier.name }}? It stays on past parts but is hidden from new choices."{% endif %}>
+                  {% if supplier.is_active %}Archive{% else %}Restore{% endif %}
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="staff-mobile-list md:hidden">
+    {% for supplier in suppliers %}
+    <div class="staff-mobile-row">
+      <span class="staff-mobile-row-top">
+        <span>
+          <strong>{{ supplier.name }}</strong>
+          <small>{% if supplier.contact_name %}{{ supplier.contact_name }}{% elif supplier.phone %}{{ supplier.phone }}{% else %}No contact details{% endif %}</small>
+        </span>
+        <span class="staff-status {% if supplier.is_active %}is-good{% else %}is-muted{% endif %}">{% if supplier.is_active %}Active{% else %}Archived{% endif %}</span>
+      </span>
+      <span class="staff-mobile-row-summary">{{ supplier.active_parts }} active part{{ supplier.active_parts|pluralize }}{% if supplier.low_parts %} · {{ supplier.low_parts }} to reorder{% endif %}</span>
+      <span class="staff-mobile-row-foot staff-team-mobile-actions">
+        <a class="staff-text-link" href="{% url 'staff_supplier_edit' supplier.pk %}">Edit</a>
+        <form method="post" action="{% url 'staff_supplier_toggle' supplier.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="staff-text-link {% if supplier.is_active %}staff-text-link-danger{% endif %}"{% if supplier.is_active %} data-confirm="Archive {{ supplier.name }}?"{% endif %}>{% if supplier.is_active %}Archive{% else %}Restore{% endif %}</button>
+        </form>
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+    <h3>No suppliers yet.</h3>
+    <p>Add the places you order from. The reorder list can then group parts by supplier and show the right contact details.</p>
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_supplier_create' %}">Add the first supplier</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

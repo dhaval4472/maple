@@ -1,0 +1,176 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_parts' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to parts
+  </a>
+</div>
+
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · import</p>
+    <h2 class="staff-page-title">Import parts</h2>
+    <p class="staff-page-lede">Bring in a parts list from a spreadsheet. Existing SKUs are updated without changing their stock. New parts can start with opening stock, which is saved as a count.</p>
+  </div>
+  <div class="staff-page-actions">
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_inventory_template' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">download</span>
+      Download template
+    </a>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_inventory_export' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">table_view</span>
+      Export current parts
+    </a>
+  </div>
+</div>
+
+{% if errors %}
+<div class="staff-banner staff-banner-warning">
+  <span class="material-symbols-outlined" aria-hidden="true">error</span>
+  <div>
+    <strong>Some rows could not be read.</strong>
+    <ul class="stock-import-errors">
+      {% for error in errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+
+{% if preview_rows %}
+<section class="staff-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">Step 2 of 2</p>
+      <h3 class="staff-card-title">Check before importing</h3>
+      <p class="stock-supplier-meta">{{ preview_count }} valid row{{ preview_count|pluralize }} ready.{% if preview_count > 50 %} Showing the first 50.{% endif %} Stock for existing SKUs will not be overwritten.</p>
+    </div>
+    <span class="staff-badge">{{ preview_count }} rows</span>
+  </div>
+
+  <div class="staff-table-wrap">
+    <table class="staff-table stock-import-table">
+      <thead>
+        <tr>
+          <th scope="col">Row</th>
+          <th scope="col">SKU</th>
+          <th scope="col">Part</th>
+          <th scope="col">Category</th>
+          <th scope="col">Bin</th>
+          <th scope="col">Unit</th>
+          <th scope="col" class="text-right">Opening</th>
+          <th scope="col">Supplier</th>
+          <th scope="col" class="text-right">Cost</th>
+          <th scope="col" class="text-right">Reorder</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in preview_rows %}
+        <tr>
+          <td class="stock-muted">{{ row.line }}</td>
+          <td><span class="staff-table-name">{{ row.sku }}</span></td>
+          <td>{{ row.name }}</td>
+          <td>{{ row.category }}</td>
+          <td class="stock-bin">{{ row.bin_location|default:"—" }}</td>
+          <td>{{ row.unit }}</td>
+          <td class="text-right stock-number">{{ row.opening_stock }}</td>
+          <td>{{ row.supplier|default:"—" }}</td>
+          <td class="text-right stock-cost">${{ row.cost_price }}</td>
+          <td class="text-right">{{ row.reorder_level }}{% if row.reorder_target %} → {{ row.reorder_target }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" class="staff-form-actions stock-import-actions">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="confirm"/>
+    <input type="hidden" name="rows_json" value="{{ rows_json }}"/>
+    {% if create_missing_suppliers %}<input type="hidden" name="create_missing_suppliers" value="on"/>{% endif %}
+    <button type="submit" class="btn-primary h-11 px-6">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">upload_file</span>
+      Import {{ preview_count }} row{{ preview_count|pluralize }}
+    </button>
+    <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_inventory_import' %}">Start over</a>
+  </form>
+</section>
+{% else %}
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Step 1 of 2</p>
+        <h3 class="staff-card-title">Choose a CSV file</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">upload_file</span></span>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div>
+        <label class="field-label" for="{{ form.csv_file.id_for_label }}">CSV file</label>
+        {{ form.csv_file }}
+        {% if form.csv_file.errors %}<p class="field-error">{{ form.csv_file.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.csv_file.help_text }} Keep it under 1 MB and 2,000 rows.</p>
+      </div>
+
+      <label class="staff-check-row" for="{{ form.create_missing_suppliers.id_for_label }}">
+        {{ form.create_missing_suppliers }}
+        <span>
+          <strong>Create suppliers that are not in the system yet</strong>
+          <small>Untick to reject rows that mention an unknown supplier.</small>
+        </span>
+      </label>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">preview</span>
+          Preview rows
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_inventory_template' %}">Download template</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Columns</p>
+          <h3 class="staff-card-title">What the file needs</h3>
+        </div>
+      </div>
+      <p class="staff-help-copy">Only <strong>sku</strong> and <strong>name</strong> are required. Use the template to get the headers exactly right.</p>
+      <ul class="stock-column-list">
+        {% for column in columns %}
+        <li><code>{{ column }}</code></li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Safe by default</p>
+          <h3 class="staff-card-title">Import rules</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Existing SKUs are matched and updated.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Existing stock is never replaced by the file.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Opening stock is only applied to brand-new parts.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Bad rows are listed before anything is saved.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

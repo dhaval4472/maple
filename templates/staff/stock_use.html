@@ -1,0 +1,92 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_part_detail' part.pk %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {{ part.sku }}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · use</p>
+    <h2 class="staff-page-title">Use stock</h2>
+    <p class="staff-page-lede">Record what you are taking off the shelf. If you link it to one of your jobs, the part and cost are added to that ticket.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">{{ part.sku }}</p>
+        <h3 class="staff-card-title">{{ part.name }}</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">remove_circle</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.quantity.id_for_label }}">Quantity used</label>
+          {{ form.quantity }}
+          {% if form.quantity.errors %}<p class="field-error">{{ form.quantity.errors.0 }}</p>{% endif %}
+          {% if form.quantity.help_text %}<p class="staff-field-help">{{ form.quantity.help_text }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.ticket.id_for_label }}">Use on a work ticket</label>
+          {{ form.ticket }}
+          {% if form.ticket.errors %}<p class="field-error">{{ form.ticket.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{% if staff_is_master %}Optional. Linking lets the ticket show parts used and the job cost.{% else %}Pick one of your open jobs so the part shows on that ticket.{% endif %}</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.note.id_for_label }}">Note (optional)</label>
+        {{ form.note }}
+        {% if form.note.errors %}<p class="field-error">{{ form.note.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">remove_circle</span>
+          Take from stock
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_part_detail' part.pk %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Before you take</p>
+          <h3 class="staff-card-title">Currently on the shelf</h3>
+        </div>
+      </div>
+      <div class="stock-side-figure {% if part.quantity_on_hand <= 0 %}is-empty{% endif %}">
+        <strong>{{ part.quantity_on_hand }}</strong>
+        <span>{{ part.get_unit_display|lower }} in bin {{ part.bin_location|default:"not set" }}</span>
+      </div>
+      {% if part.quantity_on_hand <= 0 %}
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">warning</span>
+        Nothing is on the shelf. Ask the shop owner to receive stock or record a count first.
+      </p>
+      {% else %}
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        Take only what the job needs. The shelf balance is reduced as soon as you save.
+      </p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

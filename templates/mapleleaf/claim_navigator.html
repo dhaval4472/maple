@@ -1,0 +1,257 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}MPI Claim Navigator | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}Work out the next step for your MPI claim with a short, plain-language navigator from Maple Leaf Auto Body &amp; Glass in Winnipeg. No coverage promises — just the right questions.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-8 lg:pt-12 lg:pb-10" data-rail-label="Claim navigator">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <a class="hover:text-primary transition-colors" href="{% url 'tools' %}">Tools</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">MPI claim navigator</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">MPI claim navigator</p>
+        <h1 class="display-2 mt-3 max-w-[18ch]">Work out the next step for your claim.</h1>
+        <p class="lede mt-5 max-w-[56ch] text-on-surface-variant">
+          Four questions about the claim, the vehicle and the paperwork. You get a plain-language next step and a checklist. MPI still makes the coverage decision — this tool does not.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">schedule</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed"><strong class="text-on-surface">About 2 minutes.</strong> Answers stay in your browser until you choose to send them to the shop.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <aside class="lg:col-span-4 space-y-4" data-stagger>
+        <div class="rail-card">
+          <p class="stamp text-primary">What this covers</p>
+          <ul class="tool-list mt-3">
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Whether to call MPI, the shop, or both</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>What to bring to the first visit</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>What happens if the vehicle is not drivable</li>
+          </ul>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">What this does not do</p>
+          <ul class="tool-list tool-list-muted mt-3">
+            <li><span class="material-symbols-outlined" aria-hidden="true">remove</span>Approve or deny coverage</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">remove</span>Set a final repair price</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">remove</span>Replace an MPI adjuster's decision</li>
+          </ul>
+        </div>
+        <div class="rail-dark">
+          <p class="stamp text-white/50">Need a person?</p>
+          <h2 class="font-headline font-bold text-lg text-white mt-2">Call the shop.</h2>
+          <p class="text-sm text-white/65 mt-1.5 leading-relaxed">During shop hours, a person answers and can talk through the claim side.</p>
+          <a class="btn-primary h-11 w-full mt-4" href="tel:+12045868253">Call (204) 586-8253</a>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8">
+        <div class="tool-panel" data-claim-navigator {% if success %}data-completed="true"{% endif %} {% if form.errors %}data-form-open="true"{% endif %}>
+          {% if success %}
+          <div class="tool-success" role="status">
+            <span class="success-mark" aria-hidden="true"><span class="material-symbols-outlined text-[30px]">check</span></span>
+            <p class="stamp text-primary mt-5">Request received</p>
+            <h2 class="font-headline text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">The shop has your details.</h2>
+            <p class="text-sm text-on-surface-variant mt-2 max-w-md mx-auto">
+              {% if success.reference and success.reference != "—" %}Reference <strong class="text-on-surface">{{ success.reference }}</strong>. {% endif %}We will call you during shop hours to confirm the next step. If the vehicle is unsafe to drive, call us instead of waiting for the callback.
+            </p>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <a class="btn-primary h-11 px-5" href="tel:+12045868253">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+                Call now
+              </a>
+              <a class="btn-secondary h-11 px-5" href="{% url 'tools' %}">Back to tools</a>
+            </div>
+          </div>
+          {% else %}
+          <div class="tool-panel-head">
+            <div>
+              <p class="stamp text-primary">Claim navigator</p>
+              <h2 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1" data-claim-heading>Was anyone injured?</h2>
+            </div>
+            <span class="tool-step-count" data-claim-step-count>Step 1 of 4</span>
+          </div>
+          <div class="tool-progress" aria-hidden="true"><span data-claim-progress></span></div>
+
+          <div data-claim-wizard>
+            <div class="tool-step" data-claim-step="1">
+              <p class="tool-question">Was anyone hurt in the incident?</p>
+              <p class="tool-help">If someone needs medical help, call 911 first. This tool is for the repair side only.</p>
+              <div class="tool-options">
+                <button type="button" class="tool-option" data-claim-answer="anyone_injured" data-value="yes">
+                  <span class="material-symbols-outlined" aria-hidden="true">emergency</span>
+                  <span><strong>Yes, someone was hurt</strong><small>Show me the right first step</small></span>
+                </button>
+                <button type="button" class="tool-option" data-claim-answer="anyone_injured" data-value="no">
+                  <span class="material-symbols-outlined" aria-hidden="true">health_and_safety</span>
+                  <span><strong>No injuries</strong><small>Continue to the claim questions</small></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tool-step" data-claim-step="2" hidden>
+              <p class="tool-question">Do you have an MPI claim number?</p>
+              <p class="tool-help">The number is usually on the claim letter, in your MPI account or from your adjuster.</p>
+              <div class="tool-options">
+                <button type="button" class="tool-option" data-claim-answer="has_claim" data-value="yes">
+                  <span class="material-symbols-outlined" aria-hidden="true">confirmation_number</span>
+                  <span><strong>Yes, I have a claim number</strong><small>Bring it to the first visit</small></span>
+                </button>
+                <button type="button" class="tool-option" data-claim-answer="has_claim" data-value="no">
+                  <span class="material-symbols-outlined" aria-hidden="true">add_card</span>
+                  <span><strong>No claim yet</strong><small>Start with MPI, then come to the shop</small></span>
+                </button>
+                <button type="button" class="tool-option" data-claim-answer="has_claim" data-value="unsure">
+                  <span class="material-symbols-outlined" aria-hidden="true">help</span>
+                  <span><strong>Not sure</strong><small>We can help you check what you have</small></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tool-step" data-claim-step="3" hidden>
+              <p class="tool-question">Is the vehicle drivable?</p>
+              <p class="tool-help">“Drivable” means safe to move under its own power — not just that it starts.</p>
+              <div class="tool-options">
+                <button type="button" class="tool-option" data-claim-answer="vehicle_drivable" data-value="yes">
+                  <span class="material-symbols-outlined" aria-hidden="true">directions_car</span>
+                  <span><strong>Yes, it is safe to drive</strong><small>Plan a drop-off or estimate</small></span>
+                </button>
+                <button type="button" class="tool-option" data-claim-answer="vehicle_drivable" data-value="no">
+                  <span class="material-symbols-outlined" aria-hidden="true">car_crash</span>
+                  <span><strong>No, or I am not sure</strong><small>Talk about towing and intake first</small></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tool-step" data-claim-step="4" hidden>
+              <p class="tool-question">Are you the registered owner?</p>
+              <p class="tool-help">The paperwork usually needs to match the registered owner.</p>
+              <div class="tool-options">
+                <button type="button" class="tool-option" data-claim-answer="registered_owner" data-value="yes">
+                  <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+                  <span><strong>Yes</strong><small>Continue to your next step</small></span>
+                </button>
+                <button type="button" class="tool-option" data-claim-answer="registered_owner" data-value="no">
+                  <span class="material-symbols-outlined" aria-hidden="true">group</span>
+                  <span><strong>No, someone else owns it</strong><small>We will explain what to bring</small></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tool-nav">
+              <button type="button" class="text-link text-sm inline-flex items-center gap-1" data-claim-back hidden>
+                <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_back</span>
+                Back
+              </button>
+              <button type="button" class="text-[12px] text-on-surface-variant underline underline-offset-2 ml-auto" data-claim-restart>Start over</button>
+            </div>
+          </div>
+
+          <div class="tool-result" data-claim-result hidden aria-live="polite">
+            <div class="tool-result-head">
+              <span class="tool-result-icon"><span class="material-symbols-outlined" data-claim-result-icon aria-hidden="true">verified_user</span></span>
+              <div>
+                <p class="stamp text-primary">Your suggested next step</p>
+                <h3 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1" data-claim-result-title>Start with MPI, then book an estimate.</h3>
+              </div>
+            </div>
+            <p class="text-sm text-on-surface-variant mt-4 leading-relaxed" data-claim-result-copy></p>
+            <ul class="tool-checklist" data-claim-result-list></ul>
+            <div class="tool-result-actions">
+              <button type="button" class="btn-primary h-11 px-5" data-claim-open-form>Send this to the shop</button>
+              <button type="button" class="btn-secondary h-11 px-5" data-claim-restart>Change an answer</button>
+            </div>
+            <p class="text-[11px] text-on-surface-variant mt-3">Coverage decisions stay with MPI. This is a guide, not an approval.</p>
+          </div>
+
+          <div class="tool-form-wrap" data-claim-lead>
+            <div class="tool-form-head">
+              <p class="stamp text-primary">Send it to the shop</p>
+              <h3 class="font-headline text-xl font-extrabold tracking-tight mt-1">Where should we call you?</h3>
+              <p class="text-sm text-on-surface-variant mt-1">We use these details to reply to this request only. <a class="text-primary font-semibold hover:underline" href="{% url 'privacy' %}">Privacy</a>.</p>
+            </div>
+
+            {% if form.errors %}
+            <div class="form-alert mb-4" role="alert">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">error</span>
+              <span>Please fix the highlighted fields and try again.</span>
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'claim_navigator' %}" data-claim-form novalidate>
+              {% csrf_token %}
+              {{ form.has_claim }}
+              {{ form.anyone_injured }}
+              {{ form.vehicle_drivable }}
+              {{ form.registered_owner }}
+              {{ form.result_summary }}
+              <div class="hidden" aria-hidden="true">
+                <label for="claim-website">Website</label>
+                {{ form.website }}
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="field-label" for="{{ form.full_name.id_for_label }}">Your name <span class="text-primary">*</span></label>
+                  {{ form.full_name }}
+                  {% if form.full_name.errors %}<p class="field-error">{{ form.full_name.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.phone_number.id_for_label }}">Phone <span class="text-primary">*</span></label>
+                  {{ form.phone_number }}
+                  {% if form.phone_number.errors %}<p class="field-error">{{ form.phone_number.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label class="field-label" for="{{ form.email.id_for_label }}">Email (optional)</label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.claim_number.id_for_label }}">Claim number (if you have it)</label>
+                  {{ form.claim_number }}
+                  {% if form.claim_number.errors %}<p class="field-error">{{ form.claim_number.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label class="field-label" for="{{ form.preferred_time.id_for_label }}">Best time to call</label>
+                  {{ form.preferred_time }}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.damage_description.id_for_label }}">What happened?</label>
+                  {{ form.damage_description }}
+                </div>
+              </div>
+              <button type="submit" class="btn-primary w-full h-12 mt-5" data-submit>
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
+                <span data-submit-label>Send claim details</span>
+                <span class="spinner" data-spinner hidden aria-hidden="true"></span>
+              </button>
+              <p class="text-[11px] text-on-surface-variant text-center mt-3">Prefer the phone? <a class="text-primary font-semibold hover:underline" href="tel:+12045868253">(204) 586-8253</a>. If the vehicle is unsafe, call instead.</p>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

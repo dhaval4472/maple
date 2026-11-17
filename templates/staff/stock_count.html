@@ -1,0 +1,88 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_part_detail' part.pk %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {{ part.sku }}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · count</p>
+    <h2 class="staff-page-title">Count stock</h2>
+    <p class="staff-page-lede">Enter the number you actually count on the shelf. If it differs from the system, the difference is recorded as a movement with your reason.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">{{ part.sku }}</p>
+        <h3 class="staff-card-title">{{ part.name }}</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">fact_check</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.counted_quantity.id_for_label }}">Counted quantity</label>
+          {{ form.counted_quantity }}
+          {% if form.counted_quantity.errors %}<p class="field-error">{{ form.counted_quantity.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Count the actual units or containers in bin {{ part.bin_location|default:"not set" }}.</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.reason.id_for_label }}">Reason</label>
+          {{ form.reason }}
+          {% if form.reason.errors %}<p class="field-error">{{ form.reason.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.note.id_for_label }}">Note (optional)</label>
+        {{ form.note }}
+        {% if form.note.errors %}<p class="field-error">{{ form.note.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">fact_check</span>
+          Save count
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_part_detail' part.pk %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">System says</p>
+          <h3 class="staff-card-title">Current balance</h3>
+        </div>
+      </div>
+      <div class="stock-side-figure">
+        <strong>{{ part.quantity_on_hand }}</strong>
+        <span>{{ part.get_unit_display|lower }} in bin {{ part.bin_location|default:"not set" }}</span>
+      </div>
+      <dl class="staff-meta-list">
+        <div><dt>Last counted</dt><dd>{% if part.last_counted_at %}{{ part.last_counted_at|date:"M j, Y" }}{% else %}Never{% endif %}</dd></div>
+        <div><dt>Reorder level</dt><dd>{% if part.reorder_level %}{{ part.reorder_level }}{% else %}Not tracked{% endif %}</dd></div>
+      </dl>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        Confirming the same number updates the last counted date without creating a stock change.
+      </p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

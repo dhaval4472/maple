@@ -1,0 +1,104 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Before &amp; After Repair Stories | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}Real, permissioned before-and-after repair stories from Maple Leaf Auto Body &amp; Glass in North End Winnipeg. We only publish customer vehicles with written permission.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12 lg:pb-12" data-rail-label="Before &amp; after">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Before &amp; after</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Repair stories</p>
+        <h1 class="display-2 mt-3 max-w-[17ch]">Real work, published with permission.</h1>
+        <p class="lede mt-5 max-w-[54ch] text-on-surface-variant">
+          Before-and-after photos only appear here when the customer has given written permission and the story is published by the shop. No stock damage photos, no invented results.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">verified_user</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed"><strong class="text-on-surface">Our rule:</strong> if we do not have permission, the vehicle does not go on the website. That is why this page may be empty while we collect approvals.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    {% if stories %}
+    <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter repair stories">
+      <a class="filter-chip {% if active_category == 'all' %}is-active{% endif %}" href="{% url 'repair_stories' %}" {% if active_category == 'all' %}aria-current="page"{% endif %}>All</a>
+      <a class="filter-chip {% if active_category == 'body' %}is-active{% endif %}" href="{% url 'repair_stories' %}?category=body" {% if active_category == 'body' %}aria-current="page"{% endif %}>Body &amp; glass</a>
+      <a class="filter-chip {% if active_category == 'mechanical' %}is-active{% endif %}" href="{% url 'repair_stories' %}?category=mechanical" {% if active_category == 'mechanical' %}aria-current="page"{% endif %}>Mechanical</a>
+      <a class="filter-chip {% if active_category == 'maintenance' %}is-active{% endif %}" href="{% url 'repair_stories' %}?category=maintenance" {% if active_category == 'maintenance' %}aria-current="page"{% endif %}>Maintenance</a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8" data-stagger>
+      {% for story in stories %}
+      <article class="story-card" id="story-{{ story.slug }}">
+        <div class="story-compare">
+          <figure class="story-frame">
+            <img src="{{ story.before_image.url }}" alt="Before: {{ story.title }}" loading="lazy"/>
+            <figcaption>Before</figcaption>
+          </figure>
+          <figure class="story-frame">
+            <img src="{{ story.after_image.url }}" alt="After: {{ story.title }}" loading="lazy"/>
+            <figcaption>After</figcaption>
+          </figure>
+        </div>
+        <div class="p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-3">
+            <span class="stamp text-primary">{{ story.get_category_display }}</span>
+            {% if story.completed_on %}<span class="text-[11px] text-on-surface-variant">{{ story.completed_on|date:"M Y" }}</span>{% endif %}
+          </div>
+          <h2 class="font-headline text-xl font-bold tracking-tight mt-2">{{ story.title }}</h2>
+          {% if story.vehicle %}<p class="text-xs font-semibold text-on-surface-variant mt-1">{{ story.vehicle }}</p>{% endif %}
+          <p class="text-sm text-on-surface-variant mt-3 leading-relaxed">{{ story.summary }}</p>
+          {% if story.work_done %}<p class="text-sm text-on-surface-variant mt-2 leading-relaxed">{{ story.work_done }}</p>{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <span class="empty-state-icon"><span class="material-symbols-outlined" aria-hidden="true">photo_library</span></span>
+      <p class="stamp text-primary mt-5">Collecting permissions</p>
+      <h2 class="font-headline text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">No permissioned repair stories yet.</h2>
+      <p class="text-sm text-on-surface-variant mt-3 max-w-lg mx-auto leading-relaxed">
+        We are not going to fill this page with stock photos or someone else's work. When a customer gives written permission, their before-and-after story will appear here. Until then, you can ask to see recent work in person at the shop.
+      </p>
+      <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+        <button type="button" class="btn-primary h-11 px-5" data-callback-open data-service="Request to see recent work">Ask to see recent work</button>
+        <a class="btn-secondary h-11 px-5" href="{% url 'contact' %}">Contact the shop</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="dark-panel p-7 sm:p-10 lg:p-12">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div class="max-w-[52ch]">
+          <p class="stamp text-white/50">Your vehicle, your call</p>
+          <h2 class="h2 text-white mt-3">Want to share your repair?</h2>
+          <p class="text-white/70 mt-3 leading-relaxed">If you are comfortable with it, we will ask separately for written permission before publishing any photos. Sending a photo request for an estimate does not give us permission to publish it.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+          <a class="btn-primary h-12 px-5" href="{% url 'photo_request' %}">Send a photo request</a>
+          <a class="h-12 px-5 inline-flex items-center justify-center gap-2 rounded border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors" href="{% url 'privacy' %}">Photo policy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

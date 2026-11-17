@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="csrf-token" content="{{ csrf_token }}"/>
+  <title>{% block title %}{{ page_title }} · Maple Leaf Auto Body &amp; Glass{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'img/package/logo.png' %}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=27"/>
+</head>
+<body class="customer-body">
+  <a class="skip-link" href="#customer-main">Skip to my requests</a>
+
+  <header class="customer-topbar">
+    <div class="customer-topbar-inner page-shell">
+      <a class="customer-brand" href="{% url 'customer_dashboard' %}">
+        <img alt="" src="{% static 'img/package/logo.png' %}"/>
+        <span>
+          <strong>Maple Leaf</strong>
+          <small>Customer account</small>
+        </span>
+      </a>
+
+      <nav class="customer-nav" aria-label="Customer account">
+        <a class="customer-nav-link {% if nav == 'requests' %}is-active{% endif %}" href="{% url 'customer_dashboard' %}">
+          <span class="material-symbols-outlined" aria-hidden="true">inbox</span>
+          <span>My requests</span>
+        </a>
+        <a class="customer-nav-link {% if nav == 'password' %}is-active{% endif %}" href="{% url 'customer_password_change' %}">
+          <span class="material-symbols-outlined" aria-hidden="true">key</span>
+          <span>Password</span>
+        </a>
+        <form method="post" action="{% url 'customer_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="customer-nav-link customer-nav-button">
+            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+            <span>Sign out</span>
+          </button>
+        </form>
+      </nav>
+    </div>
+  </header>
+
+  <main id="customer-main" class="customer-main" tabindex="-1">
+    <div class="page-shell customer-shell">
+      {% if messages %}
+      <div class="customer-flashes" aria-live="polite">
+        {% for message in messages %}
+        <div class="customer-flash customer-flash-{{ message.tags|default:'info' }}" role="status">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}</span>
+          <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="customer-foot">
+    <div class="page-shell customer-foot-inner">
+      <span>Maple Leaf Auto Body &amp; Glass · 492 Dufferin Ave, Winnipeg</span>
+      <a href="tel:+12045868253">
+        <span class="material-symbols-outlined" aria-hidden="true">call</span>
+        (204) 586-8253
+      </a>
+      <a href="{% url 'home' %}">Public website</a>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/staff.js' %}?v=2" defer></script>
+</body>
+</html>

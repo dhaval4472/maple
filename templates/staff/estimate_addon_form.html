@@ -1,0 +1,94 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_estimate_addons' service.slug %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {{ service.title }} add-ons
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">Edit add-on</p>
+    <h2 class="staff-page-title">{{ addon.label }}</h2>
+    <p class="staff-page-lede">This amount is added to both ends of the {{ service.title|lower }} range when a visitor ticks it.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Add-on</p>
+        <h3 class="staff-card-title">Name and amount</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">playlist_add</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div>
+        <label class="field-label" for="{{ form.label.id_for_label }}">Add-on name</label>
+        {{ form.label }}
+        {% if form.label.errors %}<p class="field-error">{{ form.label.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.label.help_text }}</p>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.amount.id_for_label }}">Amount (CAD)</label>
+          {{ form.amount }}
+          {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.amount.help_text }}</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.display_order.id_for_label }}">Order</label>
+          {{ form.display_order }}
+          {% if form.display_order.errors %}<p class="field-error">{{ form.display_order.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.display_order.help_text }}</p>
+        </div>
+      </div>
+
+      <label class="staff-check-row" for="{{ form.enabled.id_for_label }}">
+        {{ form.enabled }}
+        <span>
+          <strong>Offer this add-on</strong>
+          <small>Untick to keep it on file without showing it publicly.</small>
+        </span>
+      </label>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          Save add-on
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_estimate_addons' service.slug %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Check it first</p>
+          <h3 class="staff-card-title">Preview</h3>
+        </div>
+      </div>
+      <div class="staff-price-preview">
+        <strong>{{ addon.label }}</strong>
+        <span class="staff-field-help">Adds +${{ addon.amount|floatformat:0 }} to the {{ service.title|lower }} range.</span>
+      </div>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+        This appears as a checkbox on the public estimator only when it is offered and the service itself is live.
+      </p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

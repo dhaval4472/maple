@@ -1,0 +1,142 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-secondary" href="{{ export_url }}">
+  <span class="material-symbols-outlined" aria-hidden="true">download</span>
+  <span class="hidden sm:inline">Export CSV</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Request inbox</p>
+    <h2 class="staff-page-title">{{ config.plural }}</h2>
+    <p class="staff-page-lede">{{ config.description }}</p>
+  </div>
+  <div class="staff-page-actions">
+    <span class="staff-count-chip">{{ total_count }} total</span>
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_dashboard' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span>
+      Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="staff-tabs" role="tablist" aria-label="Filter by status">
+  {% for tab in status_tabs %}
+  <a class="staff-tab {% if tab.active %}is-active{% endif %}" href="{{ tab.url }}" {% if tab.active %}aria-current="page"{% endif %}>
+    {{ tab.label }}
+    <span class="staff-tab-count">{{ tab.count }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<section class="staff-card staff-card-flush">
+  <form class="staff-toolbar" method="get" action="">
+    {% if active_status %}<input type="hidden" name="status" value="{{ active_status }}"/>{% endif %}
+    <label class="staff-search" for="request-search">
+      <span class="material-symbols-outlined" aria-hidden="true">search</span>
+      <input id="request-search" type="search" name="q" value="{{ query }}" placeholder="{{ config.search_placeholder }}"/>
+    </label>
+    <button type="submit" class="staff-btn staff-btn-primary">Search</button>
+    {% if query %}
+    <a class="staff-btn staff-btn-ghost" href="?{% if active_status %}status={{ active_status }}{% endif %}">Clear</a>
+    {% endif %}
+    <span class="staff-toolbar-note">Showing {{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }} of {{ page_obj.paginator.count }}</span>
+  </form>
+
+  {% if rows %}
+  <div class="staff-table-wrap hidden md:block">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th scope="col">Request</th>
+          <th scope="col">Customer</th>
+          <th scope="col">Details</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="sr-only">Open</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>
+            <a class="staff-table-ref" href="{{ row.url }}">{{ row.reference }}</a>
+            <span class="staff-table-date">{{ row.created_label }}</span>
+          </td>
+          <td>
+            <a class="staff-table-name" href="{{ row.url }}">{{ row.name }}</a>
+            <span class="staff-table-phone">{{ row.phone }}</span>
+          </td>
+          <td class="staff-table-detail">{{ row.summary }}</td>
+          <td><span class="staff-status {{ row.status_class }}">{{ row.status_label }}</span></td>
+          <td class="text-right">
+            <a class="staff-row-open" href="{{ row.url }}" aria-label="Open {{ row.reference }}">
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="staff-mobile-list md:hidden">
+    {% for row in rows %}
+    <a class="staff-mobile-row" href="{{ row.url }}">
+      <span class="staff-mobile-row-top">
+        <span>
+          <strong>{{ row.name }}</strong>
+          <small>{{ row.reference }} · {{ row.created_label }}</small>
+        </span>
+        <span class="staff-status {{ row.status_class }}">{{ row.status_label }}</span>
+      </span>
+      <span class="staff-mobile-row-summary">{{ row.summary }}</span>
+      <span class="staff-mobile-row-foot">
+        <span class="material-symbols-outlined" aria-hidden="true">call</span>
+        {{ row.phone }}
+        <span class="material-symbols-outlined ml-auto" aria-hidden="true">chevron_right</span>
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">{{ config.icon }}</span>
+    <h3>No {{ config.plural|lower }} match this view.</h3>
+    <p>{% if query or active_status %}Try clearing the search or choosing a different status.{% else %}When someone submits a request, it will appear here right away.{% endif %}</p>
+    {% if query or active_status %}
+    <a class="staff-btn staff-btn-secondary" href="{% url config.list_url %}">Clear filters</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="staff-pagination" aria-label="Request pages">
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="staff-pagination-links">
+      {% if page_obj.has_previous %}
+      <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous page">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+      </a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:-1 and num <= page_obj.number|add:1 %}
+          {% if num == page_obj.number %}
+          <span class="staff-page-btn is-current" aria-current="page">{{ num }}</span>
+          {% else %}
+          <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ num }}">{{ num }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next page">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}

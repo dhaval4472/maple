@@ -1,0 +1,81 @@
+{% comment %}
+Shared "parts used" card for a work ticket.
+Expects: ticket, parts_rows, can_add_parts, can_manage.
+Costs and return-to-stock are only rendered for masters.
+{% endcomment %}
+<section class="staff-card stock-ticket-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">Stockroom</p>
+      <h3 class="staff-card-title">Parts used on this job</h3>
+    </div>
+    <div class="stock-card-actions">
+      {% if can_add_parts %}
+      <a class="staff-btn staff-btn-secondary" href="{% url 'staff_parts' %}?ticket={{ ticket.pk }}">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        Use a part
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if parts_rows %}
+  <div class="staff-table-wrap">
+    <table class="staff-table stock-ticket-table">
+      <thead>
+        <tr>
+          <th scope="col">Part</th>
+          <th scope="col">Bin</th>
+          <th scope="col" class="text-right">Qty</th>
+          {% if can_manage %}<th scope="col" class="text-right">Cost</th>{% endif %}
+          {% if can_manage %}<th scope="col"><span class="sr-only">Return</span></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in parts_rows %}
+        <tr>
+          <td>
+            <a class="staff-table-name" href="{% url 'staff_part_detail' row.part.pk %}">{{ row.part.name }}</a>
+            <span class="staff-table-phone">{{ row.part.sku }}{% if row.part.part_number %} · {{ row.part.part_number }}{% endif %}</span>
+          </td>
+          <td>{{ row.part.bin_location|default:"—" }}</td>
+          <td class="text-right stock-number">{{ row.quantity }} <span class="stock-unit">{{ row.part.get_unit_display }}</span></td>
+          {% if can_manage %}
+          <td class="text-right stock-cost">${{ row.cost|floatformat:2 }}</td>
+          <td class="text-right">
+            <form method="post" action="{% url 'staff_ticket_part_return' ticket.pk %}" class="stock-return-form">
+              {% csrf_token %}
+              <input type="hidden" name="part" value="{{ row.part.pk }}"/>
+              <label class="sr-only" for="return-qty-{{ row.part.pk }}">Quantity to return</label>
+              <input id="return-qty-{{ row.part.pk }}" type="number" name="quantity" value="1" min="1" max="{{ row.quantity }}" inputmode="numeric"/>
+              <button type="submit" class="staff-btn staff-btn-secondary staff-btn-compact" data-confirm="Return stock of {{ row.part.name }}?">
+                Return
+              </button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if can_manage %}
+      <tfoot>
+        <tr>
+          <th scope="row" colspan="3">Parts total</th>
+          <td class="text-right stock-cost"><strong>${{ parts_total|floatformat:2 }}</strong></td>
+          <td></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+  {% else %}
+  <p class="staff-muted-note">No parts have been recorded on this ticket yet.{% if can_add_parts %} Use “Use a part” when you take something off the shelf.{% endif %}</p>
+  {% endif %}
+
+  {% if not can_manage %}
+  <p class="staff-note">
+    <span class="material-symbols-outlined" aria-hidden="true">info</span>
+    The shop owner can see part costs. Ask them if a part looks wrong or needs returning.
+  </p>
+  {% endif %}
+</section>

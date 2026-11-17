@@ -1,0 +1,212 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Auto Repair Services in Winnipeg | Maple Leaf Auto Body & Glass{% endblock %}
+{% block meta_description %}Collision repair, windshield replacement, dent and paint, mechanical diagnostics, safety inspections and maintenance at Maple Leaf Auto Body & Glass in North End Winnipeg.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12 lg:pb-12">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Services</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Service directory</p>
+        <h1 class="display-2 mt-3 max-w-[16ch]">Every repair, under one roof.</h1>
+        <p class="lede mt-5 max-w-[52ch] text-on-surface-variant">
+          Body, glass, mechanical and maintenance work for cars, SUVs and pickups. Filter the list, open a service for the details, or call and tell us what you're hearing.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="cap-board" data-cap-board>
+          <div class="cap-board-head">
+            <span class="stamp text-on-surface-variant">Service index</span>
+            <span class="cap-total"><b>10</b> in-house</span>
+          </div>
+          <div class="cap-track" aria-hidden="true">
+            <span class="cap-seg cap-seg-body" style="width:30%"></span>
+            <span class="cap-seg cap-seg-mech" style="width:30%"></span>
+            <span class="cap-seg cap-seg-maint" style="width:40%"></span>
+          </div>
+          <div class="cap-rows" data-stagger>
+            <button type="button" class="cap-row" data-cap-filter="body" aria-pressed="false">
+              <span class="cap-swatch cap-seg-body" aria-hidden="true"></span>
+              <span class="cap-label">Body &amp; glass</span>
+              <span class="cap-count">3</span>
+            </button>
+            <button type="button" class="cap-row" data-cap-filter="mechanical" aria-pressed="false">
+              <span class="cap-swatch cap-seg-mech" aria-hidden="true"></span>
+              <span class="cap-label">Mechanical</span>
+              <span class="cap-count">3</span>
+            </button>
+            <button type="button" class="cap-row" data-cap-filter="maintenance" aria-pressed="false">
+              <span class="cap-swatch cap-seg-maint" aria-hidden="true"></span>
+              <span class="cap-label">Maintenance</span>
+              <span class="cap-count">4</span>
+            </button>
+          </div>
+          <p class="cap-status" data-cap-status aria-live="polite">Showing 10 of 10 · All services</p>
+          <div class="cap-meta">
+            <span>MPI Direct Repair</span>
+            <span data-shop-status>Mon–Sat 9–6</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24" data-service-filter id="service-directory" data-rail-label="Service directory">
+  <div class="page-shell">
+    <!-- Filter bar -->
+    <div class="filter-bar" data-filter-bar>
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+        <div class="search-field">
+          <span class="material-symbols-outlined text-[19px] text-on-surface-variant" aria-hidden="true">search</span>
+          <label class="sr-only" for="service-search">Search services</label>
+          <input type="search" id="service-search" placeholder="Search a service or symptom" autocomplete="off" data-service-search/>
+          <button type="button" class="search-clear" data-service-clear aria-label="Clear search" hidden>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by category">
+          <button type="button" class="filter-chip is-active" data-service-cat="all" aria-pressed="true">All</button>
+          <button type="button" class="filter-chip" data-service-cat="body" aria-pressed="false">Body &amp; glass</button>
+          <button type="button" class="filter-chip" data-service-cat="mechanical" aria-pressed="false">Mechanical</button>
+          <button type="button" class="filter-chip" data-service-cat="maintenance" aria-pressed="false">Maintenance</button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-surface-container">
+        <p class="text-[12px] text-on-surface-variant" data-service-count aria-live="polite">Showing 10 of 10 services</p>
+        <button type="button" class="text-[12px] font-semibold text-primary hover:underline inline-flex items-center gap-1" data-service-reset hidden>
+          <span class="material-symbols-outlined text-[15px]" aria-hidden="true">restart_alt</span>
+          Reset filters
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mt-8">
+      <!-- Service cards -->
+      <div class="lg:col-span-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" data-stagger>
+          {% for service in services %}
+          <article class="service-card" id="{{ service.slug }}" data-service data-category="{{ service.category }}" data-search="{{ service.search }}">
+            <div class="p-5 sm:p-6">
+              <div class="flex items-start justify-between gap-3">
+                <span class="service-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#{{ service.icon }}"></use></svg></span>
+                <span class="stamp text-on-surface-variant">{{ service.category_label }}</span>
+              </div>
+              <h2 class="font-headline text-[19px] font-bold tracking-tight mt-4">{{ service.title }}</h2>
+              <p class="text-sm text-on-surface-variant mt-1.5 leading-relaxed">{{ service.summary }}</p>
+              <button type="button" class="service-toggle" aria-expanded="false" aria-controls="details-{{ service.slug }}" data-service-toggle>
+                <span>What's involved</span>
+                <span class="material-symbols-outlined service-toggle-icon" aria-hidden="true">expand_more</span>
+              </button>
+              <div class="service-details" id="details-{{ service.slug }}" data-service-details>
+                <div class="service-details-inner">
+                  <ul class="detail-list">
+                    {% for item in service.included %}<li>{{ item }}</li>{% endfor %}
+                  </ul>
+                  <dl class="detail-meta">
+                    <div><dt>Typical time</dt><dd>{{ service.time }}</dd></div>
+                    <div><dt>Claims</dt><dd>{{ service.claims }}</dd></div>
+                  </dl>
+                  <a class="text-link inline-flex items-center gap-1.5 text-sm mt-4" href="{% url 'service_detail' service.slug %}">
+                    Open the {{ service.short_title }} page
+                    <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="service-empty" data-service-empty hidden>
+          <span class="material-symbols-outlined text-[28px] text-on-surface-variant" aria-hidden="true">search_off</span>
+          <h2 class="font-headline font-bold text-lg mt-3">No services match that search.</h2>
+          <p class="text-sm text-on-surface-variant mt-1">Try a broader word, or clear the filters.</p>
+          <button type="button" class="btn-secondary h-11 px-4 mt-4" data-service-reset>Reset filters</button>
+        </div>
+      </div>
+
+      <!-- Rail -->
+      <aside class="lg:col-span-4">
+        <div class="lg:sticky lg:top-24 space-y-4" data-stagger>
+          <div class="rail-card">
+            <p class="stamp text-primary">Symptom shortcut</p>
+            <h2 class="font-headline font-bold text-lg tracking-tight mt-2">Not sure what it is?</h2>
+            <p class="text-sm text-on-surface-variant mt-1.5 leading-relaxed">Start with what you're noticing. We'll open the closest service.</p>
+            <div class="mt-4 space-y-2" data-stagger>
+              <button type="button" class="symptom-btn" data-jump-to="#windshield">
+                <span class="material-symbols-outlined text-primary" aria-hidden="true">car_repair</span>
+                <span class="flex-1 text-left"><span class="block text-sm font-semibold">Cracked or chipped glass</span><span class="block text-xs text-on-surface-variant mt-0.5">Windshield repair</span></span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant" aria-hidden="true">arrow_forward</span>
+              </button>
+              <button type="button" class="symptom-btn" data-jump-to="#check-engine">
+                <span class="material-symbols-outlined text-primary" aria-hidden="true">warning</span>
+                <span class="flex-1 text-left"><span class="block text-sm font-semibold">Check-engine light</span><span class="block text-xs text-on-surface-variant mt-0.5">Diagnostics</span></span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant" aria-hidden="true">arrow_forward</span>
+              </button>
+              <button type="button" class="symptom-btn" data-jump-to="#brakes">
+                <span class="material-symbols-outlined text-primary" aria-hidden="true">disc_full</span>
+                <span class="flex-1 text-left"><span class="block text-sm font-semibold">Squealing or soft brakes</span><span class="block text-xs text-on-surface-variant mt-0.5">Brake service</span></span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant" aria-hidden="true">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="rail-dark">
+            <p class="stamp text-white/50">MPI direct repair</p>
+            <h2 class="font-headline font-bold text-lg text-white mt-2">Claim number in hand?</h2>
+            <p class="text-sm text-white/65 mt-1.5 leading-relaxed">Bring it in. We'll talk through the repair side and what the shop needs to review your vehicle.</p>
+            <button type="button" class="btn-primary h-11 w-full mt-4" data-callback-open data-service="MPI claim question">Ask about your claim</button>
+            <a class="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white mt-3 transition-colors" href="tel:+12045868253">
+              <span class="material-symbols-outlined text-[15px]" aria-hidden="true">call</span>
+              (204) 586-8253
+            </a>
+          </div>
+
+          <div class="rail-card">
+            <div class="flex items-center gap-2">
+              <span class="status-dot" aria-hidden="true"></span>
+              <p class="text-sm font-semibold" data-shop-status>Checking shop hours…</p>
+            </div>
+            <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">492 Dufferin Ave, North End Winnipeg. Drop-off parking on site.</p>
+            <a class="text-link inline-flex items-center gap-1.5 text-sm mt-3" href="{% url 'contact' %}">
+              Directions &amp; contact
+              <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24" id="next-step" data-rail-label="Next step">
+  <div class="page-shell">
+    <div class="dark-panel cta-dark relative grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+      {% include "mapleleaf/partials/cta_art.html" %}
+      <div class="lg:col-span-8 p-7 sm:p-10 lg:p-12">
+        <p class="stamp text-white/50">Still deciding</p>
+        <h2 class="h2 text-white mt-3 max-w-[24ch]">Describe the noise. We'll tell you where to start.</h2>
+        <p class="text-white/70 mt-3 max-w-[54ch] leading-relaxed">A short call is often enough to work out whether you need a diagnostic, a brake inspection or a body estimate.</p>
+      </div>
+      <div class="lg:col-span-4 bg-[#252826] border-t lg:border-t-0 lg:border-l border-white/10 p-7 sm:p-10 flex flex-col justify-center gap-3">
+        <button type="button" class="btn-primary h-12 w-full" data-callback-open data-magnetic="3">Request a callback</button>
+        <a class="h-12 inline-flex items-center justify-center gap-2 rounded border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors" href="tel:+12045868253">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+          (204) 586-8253
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

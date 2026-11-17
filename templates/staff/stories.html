@@ -1,0 +1,106 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_story_create' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>
+  <span class="hidden sm:inline">Add story</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">Before &amp; after repair stories</h2>
+    <p class="staff-page-lede">Real work only. A story appears publicly only when written customer permission is recorded and you choose to publish it.</p>
+  </div>
+  <div class="staff-page-actions">
+    <span class="staff-count-chip">{{ published_count }} public</span>
+    <span class="staff-count-chip">{{ stories|length }} total</span>
+  </div>
+</div>
+
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">photo_library</span>
+  <div>
+    <strong>No stock photos. No borrowed work.</strong>
+    <p>Add the customer’s actual before and after photos, then tick permission only when the written approval is on file. Until then the public gallery shows an honest empty state.</p>
+  </div>
+</div>
+
+{% if stories %}
+<div class="staff-story-grid">
+  {% for story in stories %}
+  <article class="staff-story-card">
+    <div class="staff-story-media">
+      <figure>
+        <img src="{{ story.before_image.url }}" alt="Before: {{ story.title }}" loading="lazy"/>
+        <figcaption>Before</figcaption>
+      </figure>
+      <figure>
+        <img src="{{ story.after_image.url }}" alt="After: {{ story.title }}" loading="lazy"/>
+        <figcaption>After</figcaption>
+      </figure>
+    </div>
+
+    <div class="staff-story-body">
+      <div class="staff-story-top">
+        <span class="staff-story-category">{{ story.get_category_display }}</span>
+        <span class="staff-status {% if story.is_public %}is-good{% else %}is-muted{% endif %}">
+          {% if story.is_public %}Public{% else %}Not public{% endif %}
+        </span>
+      </div>
+      <h3>{{ story.title }}</h3>
+      {% if story.vehicle %}<p class="staff-story-vehicle">{{ story.vehicle }}</p>{% endif %}
+      <p class="staff-story-summary">{{ story.summary }}</p>
+
+      <div class="staff-story-flags">
+        <span class="staff-flag {% if story.customer_permission %}is-good{% else %}is-warning{% endif %}">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if story.customer_permission %}verified{% else %}gpp_maybe{% endif %}</span>
+          {% if story.customer_permission %}Written permission recorded{% else %}Permission missing{% endif %}
+        </span>
+        <span class="staff-flag {% if story.is_published %}is-good{% else %}is-muted{% endif %}">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if story.is_published %}visibility{% else %}visibility_off{% endif %}</span>
+          {% if story.is_published %}Publish ticked{% else %}Draft{% endif %}
+        </span>
+        {% if story.completed_on %}<span class="staff-flag is-muted"><span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>{{ story.completed_on|date:"M Y" }}</span>{% endif %}
+      </div>
+
+      <div class="staff-story-actions">
+        <a class="staff-btn staff-btn-secondary" href="{% url 'staff_story_edit' story.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+          Edit
+        </a>
+        <form method="post" action="{% url 'staff_story_toggle' story.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="staff-btn staff-btn-secondary">
+            <span class="material-symbols-outlined" aria-hidden="true">{% if story.is_published %}visibility_off{% else %}publish{% endif %}</span>
+            {% if story.is_published %}Unpublish{% else %}Publish{% endif %}
+          </button>
+        </form>
+        <form method="post" action="{% url 'staff_story_delete' story.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Delete “{{ story.title }}” and its photos?">
+            <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="staff-card">
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">auto_stories</span>
+    <h3>No repair stories yet.</h3>
+    <p>When you have real before and after photos with written permission, add the first story here. The public gallery will keep its honest empty state until then.</p>
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_story_create' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>
+      Add the first story
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

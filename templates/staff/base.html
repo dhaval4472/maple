@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="csrf-token" content="{{ csrf_token }}"/>
+  <title>{% block title %}{{ page_title }} · Maple Leaf Staff{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'img/package/logo.png' %}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=27"/>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="staff-body">
+  <a class="skip-link" href="#staff-main">Skip to staff content</a>
+
+  <div class="staff-shell">
+    <aside class="staff-sidebar" id="staff-sidebar" data-staff-sidebar aria-label="Staff navigation">
+      <div class="staff-brand">
+        <a class="staff-brand-lockup" href="{% if staff_is_employee %}{% url 'staff_my_work' %}{% else %}{% url 'staff_dashboard' %}{% endif %}">
+          <img alt="" class="staff-brand-logo" src="{% static 'img/package/logo.png' %}"/>
+          <span>
+            <span class="staff-brand-name">Maple Leaf</span>
+            <span class="staff-brand-sub">{% if staff_is_employee %}My work{% else %}Staff workspace{% endif %}</span>
+          </span>
+        </a>
+        <button type="button" class="staff-sidebar-close" data-staff-close aria-label="Close staff menu">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+
+      <nav class="staff-nav" aria-label="Staff sections">
+        {% if staff_is_employee %}
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">My day</p>
+          <a class="staff-nav-link {% if nav == 'my_work' %}is-active{% endif %}" href="{% url 'staff_my_work' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">handyman</span>
+            <span>My work</span>
+            {% if staff_my_open_tickets %}<span class="staff-nav-badge">{{ staff_my_open_tickets }}</span>{% endif %}
+          </a>
+          <a class="staff-nav-link {% if nav == 'parts' %}is-active{% endif %}" href="{% url 'staff_parts' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">search</span>
+            <span>Find a part</span>
+          </a>
+        </div>
+        {% else %}
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">Overview</p>
+          <a class="staff-nav-link {% if nav == 'dashboard' %}is-active{% endif %}" href="{% url 'staff_dashboard' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span>
+            <span>Dashboard</span>
+          </a>
+        </div>
+
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">Shop floor</p>
+          <a class="staff-nav-link {% if nav == 'work' %}is-active{% endif %}" href="{% url 'staff_work' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">assignment_turned_in</span>
+            <span>Work tickets</span>
+            {% if staff_open_tickets %}<span class="staff-nav-badge">{{ staff_open_tickets }}</span>{% endif %}
+          </a>
+          <a class="staff-nav-link {% if nav == 'team' %}is-active{% endif %}" href="{% url 'staff_team' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+            <span>Team</span>
+          </a>
+          <a class="staff-nav-link {% if nav == 'customers' %}is-active{% endif %}" href="{% url 'staff_customers' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">contacts</span>
+            <span>Customers</span>
+          </a>
+        </div>
+
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">Stockroom</p>
+          <a class="staff-nav-link {% if nav == 'parts' %}is-active{% endif %}" href="{% url 'staff_parts' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+            <span>Parts</span>
+            {% if staff_low_stock %}<span class="staff-nav-badge">{{ staff_low_stock }}</span>{% endif %}
+          </a>
+          <a class="staff-nav-link {% if nav == 'reorder' %}is-active{% endif %}" href="{% url 'staff_reorder' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+            <span>Reorder list</span>
+            {% if staff_low_stock %}<span class="staff-nav-badge">{{ staff_low_stock }}</span>{% endif %}
+          </a>
+          <a class="staff-nav-link {% if nav == 'suppliers' %}is-active{% endif %}" href="{% url 'staff_suppliers' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+            <span>Suppliers</span>
+          </a>
+        </div>
+
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">Request inbox</p>
+          <a class="staff-nav-link {% if nav == 'callbacks' %}is-active{% endif %}" href="{% url 'staff_callbacks' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">phone_in_talk</span>
+            <span>Callbacks</span>
+            {% if staff_new_callbacks %}<span class="staff-nav-badge">{{ staff_new_callbacks }}</span>{% endif %}
+          </a>
+          <a class="staff-nav-link {% if nav == 'bookings' %}is-active{% endif %}" href="{% url 'staff_bookings' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+            <span>Bookings</span>
+            {% if staff_new_bookings %}<span class="staff-nav-badge">{{ staff_new_bookings }}</span>{% endif %}
+          </a>
+          <a class="staff-nav-link {% if nav == 'claims' %}is-active{% endif %}" href="{% url 'staff_claims' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">assignment</span>
+            <span>MPI claims</span>
+            {% if staff_new_claims %}<span class="staff-nav-badge">{{ staff_new_claims }}</span>{% endif %}
+          </a>
+          <a class="staff-nav-link {% if nav == 'photos' %}is-active{% endif %}" href="{% url 'staff_photos' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>
+            <span>Photo requests</span>
+            {% if staff_new_photos %}<span class="staff-nav-badge">{{ staff_new_photos }}</span>{% endif %}
+          </a>
+        </div>
+
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">Website</p>
+          <a class="staff-nav-link {% if nav == 'reviews' %}is-active{% endif %}" href="{% url 'staff_reviews' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">reviews</span>
+            <span>Reviews</span>
+          </a>
+          <a class="staff-nav-link {% if nav == 'stories' %}is-active{% endif %}" href="{% url 'staff_stories' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">auto_stories</span>
+            <span>Repair stories</span>
+          </a>
+          <a class="staff-nav-link {% if nav == 'analytics' %}is-active{% endif %}" href="{% url 'staff_analytics' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">monitoring</span>
+            <span>Website activity</span>
+          </a>
+        </div>
+
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">Pricing</p>
+          <a class="staff-nav-link {% if nav == 'estimator' %}is-active{% endif %}" href="{% url 'staff_estimator' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">request_quote</span>
+            <span>Estimator</span>
+          </a>
+        </div>
+        {% endif %}
+
+        <div class="staff-nav-group">
+          <p class="staff-nav-label">Account</p>
+          <a class="staff-nav-link {% if nav == 'account' %}is-active{% endif %}" href="{% url 'staff_account' %}">
+            <span class="material-symbols-outlined" aria-hidden="true">manage_accounts</span>
+            <span>My account</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="staff-sidebar-foot">
+        <a class="staff-side-link" href="{% url 'home' %}" target="_blank" rel="noopener">
+          <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+          <span>View public website</span>
+        </a>
+        <div class="staff-user-card">
+          <span class="staff-user-avatar" aria-hidden="true">{{ staff_user.get_full_name|default:staff_user.get_username|first|upper }}</span>
+          <span class="staff-user-copy">
+            <strong>{{ staff_user.get_full_name|default:staff_user.get_username }}</strong>
+            <small>{{ staff_role_label }}{% if staff_user.is_superuser %} · Owner access{% endif %}</small>
+          </span>
+        </div>
+        <form method="post" action="{% url 'staff_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="staff-side-link staff-side-link-btn">
+            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+            <span>Sign out</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <button type="button" class="staff-scrim" data-staff-close aria-label="Close staff menu" tabindex="-1"></button>
+
+    <div class="staff-main">
+      <header class="staff-topbar">
+        <div class="flex items-center gap-3 min-w-0">
+          <button type="button" class="staff-menu-toggle" data-staff-open aria-expanded="false" aria-controls="staff-sidebar" aria-label="Open staff menu">
+            <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+          </button>
+          <div class="min-w-0">
+            <p class="staff-topbar-eyebrow">{% now "l, F j" %}</p>
+            <h1 class="staff-topbar-title">{{ page_title }}</h1>
+          </div>
+        </div>
+        <div class="staff-topbar-actions">
+          {% block topbar_actions %}{% endblock %}
+          <a class="staff-topbar-user" href="{% url 'staff_account' %}" aria-label="Open my account">
+            <span class="staff-topbar-avatar" aria-hidden="true">{{ staff_user.get_full_name|default:staff_user.get_username|first|upper }}</span>
+            <span class="hidden sm:block">{{ staff_user.get_full_name|default:staff_user.get_username }}</span>
+          </a>
+        </div>
+      </header>
+
+      <main id="staff-main" class="staff-content" tabindex="-1">
+        {% if messages %}
+        <div class="staff-flashes" aria-live="polite">
+          {% for message in messages %}
+          <div class="staff-flash staff-flash-{{ message.tags|default:'info' }}" role="status">
+            <span class="material-symbols-outlined" aria-hidden="true">{% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}</span>
+            <span>{{ message }}</span>
+            <button type="button" class="staff-flash-close" data-dismiss-flash aria-label="Dismiss message">
+              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script src="{% static 'js/staff.js' %}?v=2" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

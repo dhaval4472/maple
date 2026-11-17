@@ -1,0 +1,151 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_stories' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to repair stories
+  </a>
+</div>
+
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">{% if is_new %}Add a repair story{% else %}Edit repair story{% endif %}</h2>
+    <p class="staff-page-lede">Use real photos from the customer’s vehicle. Permission and publishing are separate on purpose.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <form method="post" enctype="multipart/form-data" class="staff-form-stack">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div class="staff-form-span-2">
+          <label class="field-label" for="{{ form.title.id_for_label }}">Story title <span class="text-primary">*</span></label>
+          {{ form.title }}
+          {% if form.title.errors %}<p class="field-error">{{ form.title.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.category.id_for_label }}">Category</label>
+          {{ form.category }}
+          {% if form.category.errors %}<p class="field-error">{{ form.category.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.vehicle.id_for_label }}">Vehicle</label>
+          {{ form.vehicle }}
+          {% if form.vehicle.errors %}<p class="field-error">{{ form.vehicle.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.slug.id_for_label }}">Web address slug</label>
+          {{ form.slug }}
+          {% if form.slug.errors %}<p class="field-error">{{ form.slug.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.slug.help_text }}</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.completed_on.id_for_label }}">Completed on</label>
+          {{ form.completed_on }}
+          {% if form.completed_on.errors %}<p class="field-error">{{ form.completed_on.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.summary.id_for_label }}">Short summary <span class="text-primary">*</span></label>
+        {{ form.summary }}
+        {% if form.summary.errors %}<p class="field-error">{{ form.summary.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.work_done.id_for_label }}">Work completed</label>
+        {{ form.work_done }}
+        {% if form.work_done.errors %}<p class="field-error">{{ form.work_done.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.before_image.id_for_label }}">Before photo <span class="text-primary">*</span></label>
+          {{ form.before_image }}
+          {% if form.before_image.errors %}<p class="field-error">{{ form.before_image.errors.0 }}</p>{% endif %}
+          {% if story and story.before_image %}
+          <div class="staff-current-image">
+            <img src="{{ story.before_image.url }}" alt="Current before photo"/>
+            <span>Current before photo</span>
+          </div>
+          {% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.after_image.id_for_label }}">After photo <span class="text-primary">*</span></label>
+          {{ form.after_image }}
+          {% if form.after_image.errors %}<p class="field-error">{{ form.after_image.errors.0 }}</p>{% endif %}
+          {% if story and story.after_image %}
+          <div class="staff-current-image">
+            <img src="{{ story.after_image.url }}" alt="Current after photo"/>
+            <span>Current after photo</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <p class="staff-field-help">JPEG, PNG or WebP. Large photos are compressed and resized automatically.</p>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.display_order.id_for_label }}">Display order</label>
+          {{ form.display_order }}
+          {% if form.display_order.errors %}<p class="field-error">{{ form.display_order.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Lower numbers appear first.</p>
+        </div>
+      </div>
+
+      <label class="staff-check-row staff-check-row-strong" for="{{ form.customer_permission.id_for_label }}">
+        {{ form.customer_permission }}
+        <span>
+          <strong>Written customer permission is on file</strong>
+          <small>{{ form.customer_permission.help_text }}</small>
+        </span>
+      </label>
+
+      <label class="staff-check-row" for="{{ form.is_published.id_for_label }}">
+        {{ form.is_published }}
+        <span>
+          <strong>Publish this story publicly</strong>
+          <small>{{ form.is_published.help_text }}</small>
+        </span>
+      </label>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          Save story
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_stories' %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Permission first</p>
+          <h3 class="staff-card-title">Before you publish</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>The photos belong to the customer’s actual vehicle.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Written permission is saved somewhere the shop can find it.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>No licence plate, VIN or personal details are visible.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>The summary does not promise a price or safety outcome.</li>
+      </ul>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        A story stays private unless both permission and publish are ticked.
+      </p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

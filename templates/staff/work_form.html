@@ -1,0 +1,150 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% if ticket %}{% url 'staff_work_detail' ticket.pk %}{% else %}{% url 'staff_work' %}{% endif %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    {% if ticket %}Back to {{ ticket.reference }}{% else %}Back to work tickets{% endif %}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">{% if is_new %}Assign work{% else %}Edit work{% endif %}</p>
+    <h2 class="staff-page-title">{% if is_new %}New work ticket{% else %}Edit {{ ticket.reference }}{% endif %}</h2>
+    <p class="staff-page-lede">{% if is_new %}Describe the job and choose the employee who will do it. They will see it under “My work” after signing in.{% else %}Update the job details or hand it to a different employee. Reassigning an active ticket resets it to Assigned.{% endif %}</p>
+  </div>
+</div>
+
+{% if booking %}
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+  <div>
+    <strong>Created from booking {{ booking.reference }}.</strong>
+    <p>{{ booking.full_name }} · {{ booking.vehicle }} · {{ booking.service }}. The customer's request notes stay visible to the assigned employee.</p>
+  </div>
+  <a class="staff-btn staff-btn-secondary shrink-0" href="{% url 'staff_booking_detail' booking.pk %}">Open booking</a>
+</div>
+{% endif %}
+
+{% if not has_employees %}
+<div class="staff-banner staff-banner-warning">
+  <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+  <div>
+    <strong>No employee accounts yet.</strong>
+    <p>Add an employee on the Team page before assigning work. Employee accounts cannot see the request inbox or website settings.</p>
+  </div>
+  <a class="staff-btn staff-btn-secondary shrink-0" href="{% url 'staff_team_create' %}">Add employee</a>
+</div>
+{% endif %}
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Job details</p>
+        <h3 class="staff-card-title">What needs doing</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">handyman</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if booking %}<input type="hidden" name="booking" value="{{ booking.pk }}"/>{% endif %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div>
+        <label class="field-label" for="{{ form.work_type.id_for_label }}">Type of work</label>
+        {{ form.work_type }}
+        {% if form.work_type.errors %}<p class="field-error">{{ form.work_type.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">For example: paint driver-side door, replace windshield, brake inspection.</p>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.vehicle.id_for_label }}">Vehicle</label>
+        {{ form.vehicle }}
+        {% if form.vehicle.errors %}<p class="field-error">{{ form.vehicle.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.vehicle.help_text }}</p>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.assignee.id_for_label }}">Assign to</label>
+          {{ form.assignee }}
+          {% if form.assignee.errors %}<p class="field-error">{{ form.assignee.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.assignee.help_text }}</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.due_date.id_for_label }}">Due date</label>
+          {{ form.due_date }}
+          {% if form.due_date.errors %}<p class="field-error">{{ form.due_date.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.due_date.help_text }}</p>
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.customer_name.id_for_label }}">Customer name</label>
+          {{ form.customer_name }}
+          {% if form.customer_name.errors %}<p class="field-error">{{ form.customer_name.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.customer_phone.id_for_label }}">Customer phone</label>
+          {{ form.customer_phone }}
+          {% if form.customer_phone.errors %}<p class="field-error">{{ form.customer_phone.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.instructions.id_for_label }}">Instructions for the employee</label>
+        {{ form.instructions }}
+        {% if form.instructions.errors %}<p class="field-error">{{ form.instructions.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">Only the assigned employee can see these instructions. Do not put private shop notes here.</p>
+      </div>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{% if is_new %}assignment_turned_in{% else %}save{% endif %}</span>
+          {% if is_new %}Assign work{% else %}Save changes{% endif %}
+        </button>
+        <a class="staff-btn staff-btn-secondary" href="{% if ticket %}{% url 'staff_work_detail' ticket.pk %}{% else %}{% url 'staff_work' %}{% endif %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">How it works</p>
+          <h3 class="staff-card-title">From assignment to done</h3>
+        </div>
+      </div>
+      <ol class="staff-steps">
+        <li><span>1</span><p>You assign the job to one employee.</p></li>
+        <li><span>2</span><p>The employee signs in and opens <strong>My work</strong>.</p></li>
+        <li><span>3</span><p>They press <strong>Start working</strong>, then <strong>Mark complete</strong> when finished.</p></li>
+        <li><span>4</span><p>You can reopen the ticket if something was missed.</p></li>
+      </ol>
+    </section>
+
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Privacy</p>
+          <h3 class="staff-card-title">What the employee sees</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Vehicle, work type and your instructions</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Customer name and phone, if you add them</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> The original booking notes, when linked</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">cancel</span> Internal request notes stay hidden</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">cancel</span> Other employees' tickets stay hidden</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

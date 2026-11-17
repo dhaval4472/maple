@@ -1,0 +1,116 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_suppliers' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to suppliers
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">{% if is_new %}New supplier{% else %}Supplier record{% endif %}</p>
+    <h2 class="staff-page-title">{% if is_new %}Add a supplier{% else %}Edit {{ supplier.name }}{% endif %}</h2>
+    <p class="staff-page-lede">Keep the contact and ordering details here so the reorder list tells you who to call and how long a delivery usually takes.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Supplier details</p>
+        <h3 class="staff-card-title">Contact and ordering</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">local_shipping</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.name.id_for_label }}">Supplier name</label>
+          {{ form.name }}
+          {% if form.name.errors %}<p class="field-error">{{ form.name.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.contact_name.id_for_label }}">Contact person</label>
+          {{ form.contact_name }}
+          {% if form.contact_name.errors %}<p class="field-error">{{ form.contact_name.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.phone.id_for_label }}">Phone</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<p class="field-error">{{ form.phone.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.account_number.id_for_label }}">Account number</label>
+          {{ form.account_number }}
+          {% if form.account_number.errors %}<p class="field-error">{{ form.account_number.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.lead_time_days.id_for_label }}">Typical lead time (days)</label>
+          {{ form.lead_time_days }}
+          {% if form.lead_time_days.errors %}<p class="field-error">{{ form.lead_time_days.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.lead_time_days.help_text }}</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.notes.id_for_label }}">Notes</label>
+        {{ form.notes }}
+        {% if form.notes.errors %}<p class="field-error">{{ form.notes.errors.0 }}</p>{% endif %}
+      </div>
+
+      <label class="staff-check-row" for="{{ form.is_active.id_for_label }}">
+        {{ form.is_active }}
+        <span>
+          <strong>Use this supplier</strong>
+          <small>{{ form.is_active.help_text }}</small>
+        </span>
+      </label>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          {% if is_new %}Add supplier{% else %}Save changes{% endif %}
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_suppliers' %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Simple ordering</p>
+          <h3 class="staff-card-title">Why keep suppliers?</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> The reorder list groups low parts by supplier.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Contact details are one tap away when it is time to call.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> A supplier delivery sheet lets you receive many parts at once.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Archiving keeps old parts and history intact.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+{% if can_manage %}
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_part_create' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">add</span>
+  <span class="hidden sm:inline">New part</span>
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Stockroom</p>
+    <h2 class="staff-page-title">{% if can_manage %}Parts{% else %}Find a part{% endif %}</h2>
+    <p class="staff-page-lede">
+      {% if can_manage %}
+      Search by name, SKU, part number, barcode or bin. Stock only changes through Receive, Use, Count or Adjust, so the shelf history always adds up.
+      {% else %}
+      Search by name, SKU, part number, barcode or bin to see what is on the shelf and where it lives. Use a part to record it against your open job.
+      {% endif %}
+    </p>
+  </div>
+  {% if can_manage %}
+  <div class="staff-page-actions">
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_reorder' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+      Reorder list
+      {% if low_total %}<span class="staff-count-chip staff-count-alert">{{ low_total }}</span>{% endif %}
+    </a>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_suppliers' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+      Suppliers
+    </a>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_inventory_import' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
+      Import
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% if ticket %}
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">assignment</span>
+  <div>
+    <strong>Choosing a part for {{ ticket.reference }}.</strong>
+    <p>{{ ticket.work_type }} · {{ ticket.vehicle }}. Open a part, then use “Use stock” to record it against this ticket.</p>
+  </div>
+  <a class="staff-btn staff-btn-secondary shrink-0" href="{% if can_manage %}{% url 'staff_work_detail' ticket.pk %}{% else %}{% url 'staff_my_work_detail' ticket.pk %}{% endif %}">Back to ticket</a>
+</div>
+{% endif %}
+
+{% if can_manage %}
+{% if low_total %}
+<div class="staff-banner staff-banner-warning">
+  <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+  <div>
+    <strong>{{ low_total }} part{{ low_total|pluralize }} at or below the reorder level.</strong>
+    <p>{% if out_total %}{{ out_total }} of them {{ out_total|pluralize:"is,are" }} completely out of stock. {% endif %}Open the reorder list to see what to order and from whom.</p>
+  </div>
+  <a class="staff-btn staff-btn-primary shrink-0" href="{% url 'staff_reorder' %}">Review reorder list</a>
+</div>
+{% endif %}
+
+<div class="staff-stat-grid stock-stat-grid">
+  <a class="staff-stat" href="{% url 'staff_parts' %}">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">inventory_2</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ active_total }}</strong>
+      <span class="staff-stat-label">Active parts</span>
+      <span class="staff-stat-hint">In the catalogue</span>
+    </span>
+    <span class="material-symbols-outlined staff-stat-arrow" aria-hidden="true">arrow_forward</span>
+  </a>
+  <a class="staff-stat {% if low_total %}stock-stat-alert{% endif %}" href="{% url 'staff_parts' %}?show=low">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">notification_important</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ low_total }}</strong>
+      <span class="staff-stat-label">To reorder</span>
+      <span class="staff-stat-hint">At or below the level</span>
+    </span>
+    <span class="material-symbols-outlined staff-stat-arrow" aria-hidden="true">arrow_forward</span>
+  </a>
+  <a class="staff-stat {% if out_total %}stock-stat-alert{% endif %}" href="{% url 'staff_parts' %}?show=low">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">production_quantity_limits</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ out_total }}</strong>
+      <span class="staff-stat-label">Out of stock</span>
+      <span class="staff-stat-hint">Nothing on the shelf</span>
+    </span>
+    <span class="material-symbols-outlined staff-stat-arrow" aria-hidden="true">arrow_forward</span>
+  </a>
+  <div class="staff-stat staff-stat-static">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">payments</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">${{ stock_value|floatformat:2 }}</strong>
+      <span class="staff-stat-label">Stock value</span>
+      <span class="staff-stat-hint">Cost × quantity on hand</span>
+    </span>
+  </div>
+</div>
+
+<div class="staff-tabs" role="tablist" aria-label="Part views">
+  <a class="staff-tab {% if show == 'active' %}is-active{% endif %}" href="?show=active{% if query %}&q={{ query|urlencode }}{% endif %}">
+    Active <span class="staff-tab-count">{{ active_total }}</span>
+  </a>
+  <a class="staff-tab {% if show == 'low' %}is-active{% endif %}" href="?show=low">
+    Reorder <span class="staff-tab-count">{{ low_total }}</span>
+  </a>
+  <a class="staff-tab {% if show == 'critical' %}is-active{% endif %}" href="?show=critical">
+    Critical <span class="staff-tab-count">{{ critical_total }}</span>
+  </a>
+  <a class="staff-tab {% if show == 'uncounted' %}is-active{% endif %}" href="?show=uncounted">
+    Never counted <span class="staff-tab-count">{{ uncounted_total }}</span>
+  </a>
+  <a class="staff-tab {% if show == 'archived' %}is-active{% endif %}" href="?show=archived">
+    Archived <span class="staff-tab-count">{{ archived_total }}</span>
+  </a>
+  <a class="staff-tab {% if show == 'all' %}is-active{% endif %}" href="?show=all">
+    All <span class="staff-tab-count">{{ all_total }}</span>
+  </a>
+</div>
+{% endif %}
+
+<section class="staff-card">
+  <form class="staff-toolbar stock-toolbar" method="get" role="search">
+    <input type="hidden" name="show" value="{{ show }}"/>
+    {% if ticket %}<input type="hidden" name="ticket" value="{{ ticket.pk }}"/>{% endif %}
+    <label class="staff-search">
+      <span class="material-symbols-outlined" aria-hidden="true">search</span>
+      <span class="sr-only">Search parts</span>
+      <input type="search" name="q" value="{{ query }}" placeholder="Search name, SKU, part number, barcode or bin" autocomplete="off"/>
+    </label>
+    {% if can_manage %}
+    <label class="sr-only" for="stock-category">Category</label>
+    <select id="stock-category" class="staff-toolbar-select" name="category">
+      <option value="">All categories</option>
+      {% for value, label in categories %}
+      <option value="{{ value }}" {% if category_filter == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label class="sr-only" for="stock-supplier">Supplier</label>
+    <select id="stock-supplier" class="staff-toolbar-select" name="supplier">
+      <option value="">All suppliers</option>
+      {% for supplier in suppliers %}
+      <option value="{{ supplier.pk }}" {% if supplier_filter == supplier.pk|stringformat:"s" %}selected{% endif %}>{{ supplier.name }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+    <button type="submit" class="staff-btn staff-btn-secondary">Search</button>
+    {% if query or category_filter or supplier_filter or show != 'active' %}
+    <a class="staff-text-link" href="{% url 'staff_parts' %}">Clear</a>
+    {% endif %}
+    <span class="staff-toolbar-note">{{ page_obj.paginator.count }} part{{ page_obj.paginator.count|pluralize }}</span>
+  </form>
+
+  {% if rows %}
+  <div class="staff-table-wrap stock-table-wrap">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th scope="col">Part</th>
+          <th scope="col">Bin</th>
+          <th scope="col" class="text-right">On hand</th>
+          <th scope="col">Stock</th>
+          {% if can_manage %}<th scope="col">Supplier</th>{% endif %}
+          {% if can_manage %}<th scope="col" class="text-right">Unit cost</th>{% endif %}
+          <th scope="col"><span class="sr-only">Open</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for part in rows %}
+        <tr class="{% if not part.is_active %}is-archived{% endif %}">
+          <td>
+            <a class="staff-table-name" href="{% url 'staff_part_detail' part.pk %}">{{ part.name }}</a>
+            <span class="staff-table-phone">{{ part.sku }}{% if part.brand %} · {{ part.brand }}{% endif %}{% if part.part_number %} · {{ part.part_number }}{% endif %}</span>
+          </td>
+          <td class="stock-bin">{{ part.bin_location|default:"—" }}</td>
+          <td class="text-right">
+            <span class="stock-number">{{ part.quantity_on_hand }}</span>
+            <span class="stock-unit">{{ part.get_unit_display }}</span>
+          </td>
+          <td><span class="staff-status {{ part.stock_status_class }}">{{ part.stock_status_label }}</span></td>
+          {% if can_manage %}
+          <td>{{ part.supplier.name|default:"—" }}</td>
+          <td class="text-right stock-cost">${{ part.cost_price|floatformat:2 }}</td>
+          {% endif %}
+          <td class="text-right">
+            <a class="staff-row-open" href="{% url 'staff_part_detail' part.pk %}" aria-label="Open {{ part.sku }}">
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="staff-mobile-list md:hidden">
+    {% for part in rows %}
+    <a class="staff-mobile-row" href="{% url 'staff_part_detail' part.pk %}">
+      <span class="staff-mobile-row-top">
+        <span>
+          <strong>{{ part.name }}</strong>
+          <small>{{ part.sku }}{% if part.bin_location %} · bin {{ part.bin_location }}{% endif %}</small>
+        </span>
+        <span class="staff-status {{ part.stock_status_class }}">{{ part.stock_status_label }}</span>
+      </span>
+      <span class="staff-mobile-row-summary">
+        {{ part.quantity_on_hand }} {{ part.get_unit_display|lower }} on hand{% if can_manage %} · ${{ part.cost_price|floatformat:2 }} each{% endif %}
+      </span>
+      <span class="staff-mobile-row-foot">
+        <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+        {{ part.get_category_display }}
+        <span class="material-symbols-outlined ml-auto" aria-hidden="true">chevron_right</span>
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+    <h3>No parts match this view.</h3>
+    <p>{% if query or category_filter or supplier_filter %}Try a different word or clear the filters.{% else %}Add the parts you keep on the shelf so the reorder list and ticket costing have something to work with.{% endif %}</p>
+    {% if can_manage and not query and not category_filter and not supplier_filter %}
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_part_create' %}">Add the first part</a>
+    {% else %}
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_parts' %}">Clear filters</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="staff-pagination" aria-label="Part pages">
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="staff-pagination-links">
+      {% if page_obj.has_previous %}
+      <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous page">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+      </a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:-1 and num <= page_obj.number|add:1 %}
+          {% if num == page_obj.number %}
+          <span class="staff-page-btn is-current" aria-current="page">{{ num }}</span>
+          {% else %}
+          <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ num }}">{{ num }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next page">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+</section>
+
+{% if can_manage %}
+<section class="staff-card staff-help-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">Keep it accurate</p>
+      <h3 class="staff-card-title">How the stockroom works</h3>
+    </div>
+  </div>
+  <ul class="staff-list-checks">
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Receive stock when a delivery arrives — the balance goes up.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Use stock when a part leaves the shelf, and link it to the job.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Count stock on a schedule. A count records the real number you see.</li>
+    <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Adjust stock only for damage, shrinkage or a correction — always with a reason.</li>
+  </ul>
+  <p class="staff-note">
+    <span class="material-symbols-outlined" aria-hidden="true">history</span>
+    Nothing is deleted. Archived parts and every movement stay in the history so past jobs and counts still make sense.
+  </p>
+</section>
+{% endif %}
+{% endblock %}

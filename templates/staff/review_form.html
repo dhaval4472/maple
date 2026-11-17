@@ -1,0 +1,108 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_reviews' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to reviews
+  </a>
+</div>
+
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">{% if is_new %}Add a review{% else %}Edit review{% endif %}</h2>
+    <p class="staff-page-lede">Use the customer’s real words. Publishing is a separate choice, so you can save a draft first.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.author.id_for_label }}">Customer name <span class="text-primary">*</span></label>
+          {{ form.author }}
+          {% if form.author.errors %}<p class="field-error">{{ form.author.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.rating.id_for_label }}">Rating</label>
+          {{ form.rating }}
+          {% if form.rating.errors %}<p class="field-error">{{ form.rating.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.quote.id_for_label }}">Review <span class="text-primary">*</span></label>
+        {{ form.quote }}
+        {% if form.quote.errors %}<p class="field-error">{{ form.quote.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">Paste exactly what the customer shared. Do not add claims they did not make.</p>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.category.id_for_label }}">Filter category</label>
+          {{ form.category }}
+          {% if form.category.errors %}<p class="field-error">{{ form.category.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.category_label.id_for_label }}">Label shown on the card</label>
+          {{ form.category_label }}
+          {% if form.category_label.errors %}<p class="field-error">{{ form.category_label.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Leave blank to use the filter category name.</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.source_label.id_for_label }}">Source label</label>
+          {{ form.source_label }}
+          {% if form.source_label.errors %}<p class="field-error">{{ form.source_label.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.display_order.id_for_label }}">Display order</label>
+          {{ form.display_order }}
+          {% if form.display_order.errors %}<p class="field-error">{{ form.display_order.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Lower numbers appear first.</p>
+        </div>
+      </div>
+
+      <label class="staff-check-row" for="{{ form.is_published.id_for_label }}">
+        {{ form.is_published }}
+        <span>
+          <strong>Show this review on the public website</strong>
+          <small>Leave unticked to save it as a private draft.</small>
+        </span>
+      </label>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          Save review
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_reviews' %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Good to know</p>
+          <h3 class="staff-card-title">How reviews appear</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Only visible reviews are rendered on the home page.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Star rating is shown per review, not as an invented overall score.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>The “Body work” and “Quick service” filters use the category.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Hiding all reviews shows an honest empty state.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

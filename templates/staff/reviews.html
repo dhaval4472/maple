@@ -1,0 +1,95 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_review_create' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">add</span>
+  <span class="hidden sm:inline">Add review</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">Customer reviews</h2>
+    <p class="staff-page-lede">Only reviews marked visible appear on the home page. The site shows the real words customers shared — no invented star counts or aggregate rating.</p>
+  </div>
+  <div class="staff-page-actions">
+    <span class="staff-count-chip">{{ published_count }} visible</span>
+    <span class="staff-count-chip">{{ reviews|length }} total</span>
+  </div>
+</div>
+
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+  <div>
+    <strong>Keep reviews honest.</strong>
+    <p>Add a review only when a customer actually shared those words. If you hide every review, the home page shows its empty state rather than falling back to invented testimonials.</p>
+  </div>
+</div>
+
+{% if reviews %}
+<div class="staff-review-list">
+  {% for review in reviews %}
+  <article class="staff-review-card">
+    <div class="staff-review-head">
+      <span class="staff-review-avatar" aria-hidden="true">{{ review.author|first|upper }}</span>
+      <div class="staff-review-identity">
+        <strong>{{ review.author }}</strong>
+        <span class="staff-review-stars" role="img" aria-label="{{ review.rating }} out of 5 stars">
+          {% for i in "12345" %}
+            <span class="material-symbols-outlined {% if forloop.counter <= review.rating %}is-filled{% endif %}" aria-hidden="true">star</span>
+          {% endfor %}
+        </span>
+      </div>
+      <span class="staff-status {% if review.is_published %}is-good{% else %}is-muted{% endif %}">
+        {% if review.is_published %}Visible{% else %}Hidden{% endif %}
+      </span>
+    </div>
+
+    <blockquote class="staff-review-quote">“{{ review.quote }}”</blockquote>
+
+    <div class="staff-review-meta">
+      <span><span class="material-symbols-outlined" aria-hidden="true">sell</span>{{ review.category_label }}</span>
+      <span><span class="material-symbols-outlined" aria-hidden="true">source</span>{{ review.source_label }}</span>
+      <span><span class="material-symbols-outlined" aria-hidden="true">sort</span>Order {{ review.display_order }}</span>
+      <span><span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>{{ review.created_at|date:"M j, Y" }}</span>
+    </div>
+
+    <div class="staff-review-actions">
+      <a class="staff-btn staff-btn-secondary" href="{% url 'staff_review_edit' review.pk %}">
+        <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+        Edit
+      </a>
+      <form method="post" action="{% url 'staff_review_toggle' review.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="staff-btn staff-btn-secondary">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if review.is_published %}visibility_off{% else %}visibility{% endif %}</span>
+          {% if review.is_published %}Hide{% else %}Publish{% endif %}
+        </button>
+      </form>
+      <form method="post" action="{% url 'staff_review_delete' review.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Delete the review by {{ review.author }}?">
+          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          Delete
+        </button>
+      </form>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="staff-card">
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">reviews</span>
+    <h3>No reviews saved yet.</h3>
+    <p>Add the real words a customer shared. They will stay hidden until you choose to publish them.</p>
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_review_create' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      Add the first review
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url config.list_url %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {{ config.plural|lower }}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="staff-status {{ status_class }}">{{ lead.get_status_display }}</span>
+      <span class="staff-ref">{{ lead.reference }}</span>
+      {% if kind == 'photo' and lead.is_expired %}<span class="staff-status is-bad">Past retention date</span>{% endif %}
+    </div>
+    <h2 class="staff-page-title mt-3">{{ lead.full_name }}</h2>
+    <p class="staff-page-lede">{{ config.label }} received {{ created_label }}.</p>
+  </div>
+  <div class="staff-page-actions">
+    <a class="staff-btn staff-btn-primary" href="tel:{{ lead.phone_number }}">
+      <span class="material-symbols-outlined" aria-hidden="true">call</span>
+      Call {{ lead.phone_number }}
+    </a>
+    {% if lead.email %}
+    <a class="staff-btn staff-btn-secondary" href="mailto:{{ lead.email }}">
+      <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+      Email
+    </a>
+    {% endif %}
+    {% if kind == 'booking' %}
+    <a class="staff-btn staff-btn-secondary" href="{{ work_create_url }}">
+      <span class="material-symbols-outlined" aria-hidden="true">add_task</span>
+      Create work ticket
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="staff-detail-grid">
+  <div class="staff-detail-main">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Customer details</p>
+          <h3 class="staff-card-title">What they asked for</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">{{ config.icon }}</span></span>
+      </div>
+
+      <dl class="staff-detail-list">
+        {% for label, value, field_kind in detail_fields %}
+        <div class="staff-detail-item {% if value|length > 90 or label == 'Notes' or label == 'Description' or label == 'Damage description' or label == 'Navigator summary' or label == 'Vehicle or notes' %}is-wide{% endif %}">
+          <dt>{{ label }}</dt>
+          <dd>
+            {% if value %}
+              {% if field_kind == 'tel' %}
+              <a class="staff-contact-link" href="tel:{{ value }}">{{ value }}</a>
+              {% elif field_kind == 'email' and value != 'Not provided' %}
+              <a class="staff-contact-link" href="mailto:{{ value }}">{{ value }}</a>
+              {% else %}
+              <span class="staff-detail-value">{{ value|linebreaksbr }}</span>
+              {% endif %}
+            {% else %}
+              <span class="staff-detail-empty">Not provided</span>
+            {% endif %}
+          </dd>
+        </div>
+        {% endfor %}
+      </dl>
+    </section>
+
+    {% if kind == 'booking' %}
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Shop floor</p>
+          <h3 class="staff-card-title">Work tickets from this booking</h3>
+        </div>
+        <a class="staff-text-link" href="{{ work_create_url }}">Assign work <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+      </div>
+
+      {% if work_tickets %}
+      <ul class="staff-request-list">
+        {% for ticket in work_tickets %}
+        <li>
+          <a class="staff-request-row" href="{% url 'staff_work_detail' ticket.pk %}">
+            <span class="staff-request-icon"><span class="material-symbols-outlined" aria-hidden="true">assignment_turned_in</span></span>
+            <span class="staff-request-main">
+              <span class="staff-request-top">
+                <strong>{{ ticket.work_type }}</strong>
+                <span class="staff-status {% if ticket.status == 'completed' %}is-good{% elif ticket.status == 'in_progress' %}is-active{% elif ticket.status == 'cancelled' %}is-muted{% else %}is-new{% endif %}">{{ ticket.get_status_display }}</span>
+              </span>
+              <span class="staff-request-summary">{{ ticket.vehicle }}</span>
+              <span class="staff-request-meta">{{ ticket.reference }} · {{ ticket.assignee.get_full_name|default:ticket.assignee.get_username }}</span>
+            </span>
+            <span class="material-symbols-outlined staff-request-arrow" aria-hidden="true">chevron_right</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="staff-muted-note">No work has been assigned from this booking yet.</p>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if kind == 'photo' %}
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Damage photos</p>
+          <h3 class="staff-card-title">{{ photos|length }} photo{{ photos|length|pluralize }}</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">photo_library</span></span>
+      </div>
+
+      {% if photos %}
+      <div class="staff-photo-grid">
+        {% for photo in photos %}
+        <figure class="staff-photo">
+          <a href="{{ photo.image.url }}" target="_blank" rel="noopener" aria-label="Open photo {{ forloop.counter }} full size">
+            <img src="{{ photo.image.url }}" alt="Damage photo {{ forloop.counter }} for {{ lead.reference }}" loading="lazy"/>
+          </a>
+          <figcaption>
+            <span>Photo {{ forloop.counter }}</span>
+            <form method="post" action="{% url 'staff_photo_image_delete' photo.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="staff-photo-delete" data-confirm="Delete this photo permanently?">
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                Delete
+              </button>
+            </form>
+          </figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+        These photos are scheduled for deletion on {{ lead.retention_expires_at|date:"M j, Y" }}. Deleting a request here also deletes its image files.
+      </p>
+      {% else %}
+      <p class="staff-muted-note">No photos are attached to this request.</p>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="staff-card staff-card-muted">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Record</p>
+          <h3 class="staff-card-title">Request history</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">history</span></span>
+      </div>
+      <dl class="staff-meta-list">
+        <div><dt>Received</dt><dd>{{ created_label }}</dd></div>
+        <div><dt>Last updated</dt><dd>{{ updated_label }}</dd></div>
+        <div><dt>Reference</dt><dd>{{ lead.reference }}</dd></div>
+        {% if kind == 'callback' %}<div><dt>Source page</dt><dd>{{ lead.source_page|default:"Unknown" }}</dd></div>{% endif %}
+        {% if kind == 'booking' %}<div><dt>Privacy consent</dt><dd>{% if lead.privacy_consent %}Given{% else %}Not recorded{% endif %}</dd></div>{% endif %}
+        {% if kind == 'photo' %}<div><dt>Privacy consent</dt><dd>{% if lead.privacy_consent %}Given{% else %}Not recorded{% endif %}</dd></div>{% endif %}
+        <div><dt>IP address</dt><dd>{{ lead.ip_address|default:"Not recorded" }}</dd></div>
+        <div class="is-wide"><dt>Browser</dt><dd class="staff-meta-browser">{{ lead.user_agent|default:"Not recorded" }}</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <aside class="staff-detail-side">
+    <section class="staff-card staff-sticky-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Shop only</p>
+          <h3 class="staff-card-title">Update this request</h3>
+        </div>
+      </div>
+
+      <form method="post" class="staff-form-stack">
+        {% csrf_token %}
+        <div>
+          <label class="field-label" for="{{ form.status.id_for_label }}">Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}<p class="field-error">{{ form.status.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">
+            {% if kind == 'booking' %}Confirm only after you have checked capacity and spoken with the customer.{% elif kind == 'claim' %}MPI decides coverage. Use “Reviewed” once you have read the answers.{% elif kind == 'photo' %}Use “Reviewed” after looking at the photos, and “Quoted” only after a real estimate.{% else %}Mark contacted once you reach the customer, and closed when the request is finished.{% endif %}
+          </p>
+        </div>
+
+        <div>
+          <label class="field-label" for="{{ form.internal_notes.id_for_label }}">Internal notes</label>
+          {{ form.internal_notes }}
+          {% if form.internal_notes.errors %}<p class="field-error">{{ form.internal_notes.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Only staff can see these notes. They never appear on the public website.</p>
+        </div>
+
+        <button type="submit" class="btn-primary h-11 w-full">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          Save update
+        </button>
+      </form>
+    </section>
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Next step</p>
+          <h3 class="staff-card-title">A simple way to handle this</h3>
+        </div>
+      </div>
+      <ol class="staff-steps">
+        {% if kind == 'callback' %}
+        <li><span>1</span><p>Call the customer during their preferred window.</p></li>
+        <li><span>2</span><p>Mark the request <strong>Contacted</strong> and add a short note.</p></li>
+        <li><span>3</span><p>If they book, use the booking page or mark it <strong>Booked</strong>.</p></li>
+        {% elif kind == 'booking' %}
+        <li><span>1</span><p>Check the preferred date and window against real shop capacity.</p></li>
+        <li><span>2</span><p>Call or email the customer to confirm before marking <strong>Confirmed by shop</strong>.</p></li>
+        <li><span>3</span><p>Mark <strong>Completed</strong> after the visit. This is a request, not a guaranteed slot.</p></li>
+        {% elif kind == 'claim' %}
+        <li><span>1</span><p>Read the navigator answers and note anything that needs a call.</p></li>
+        <li><span>2</span><p>Call the customer. MPI decides coverage; never promise approval.</p></li>
+        <li><span>3</span><p>Mark <strong>Reviewed</strong> once you have followed up.</p></li>
+        {% elif kind == 'photo' %}
+        <li><span>1</span><p>Look through every photo and the written description.</p></li>
+        <li><span>2</span><p>Call or email with next steps. Photos do not replace an in-person estimate.</p></li>
+        <li><span>3</span><p>Mark <strong>Reviewed</strong> or <strong>Quoted</strong>, then close when finished.</p></li>
+        {% endif %}
+      </ol>
+    </section>
+
+    <section class="staff-card staff-danger-card">
+      <div>
+        <p class="staff-card-kicker">Danger zone</p>
+        <h3 class="staff-card-title">Delete this request</h3>
+        <p>This removes the request{% if kind == 'photo' %} and its uploaded photos{% endif %} permanently. Export or note anything you need first.</p>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete"/>
+        <button type="submit" class="staff-btn staff-btn-danger w-full" data-confirm="Delete {{ lead.reference }} permanently? This cannot be undone.">
+          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          Delete permanently
+        </button>
+      </form>
+    </section>
+  </aside>
+</div>
+{% endblock %}

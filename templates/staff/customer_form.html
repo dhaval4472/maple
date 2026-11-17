@@ -1,0 +1,138 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_customers' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to Customers
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">{% if is_new %}New account{% else %}Customer account{% endif %}</p>
+    <h2 class="staff-page-title">{% if is_new %}Add a customer{% else %}Edit {{ customer.get_full_name|default:customer.get_username }}{% endif %}</h2>
+    <p class="staff-page-lede">{% if is_new %}Create the sign-in this customer will use to see their own requests. There is no public sign-up and no email is sent.{% else %}Update this customer's contact details. Their username stays the same so their sign-in keeps working.{% endif %}</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Account details</p>
+        <h3 class="staff-card-title">{% if is_new %}Sign-in and contact{% else %}Customer profile{% endif %}</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">contacts</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      {% if is_new %}
+      <div>
+        <label class="field-label" for="{{ form.username.id_for_label }}">Sign-in username</label>
+        {{ form.username }}
+        {% if form.username.errors %}<p class="field-error">{{ form.username.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.username.help_text }}</p>
+      </div>
+      {% else %}
+      <div class="staff-readonly-field">
+        <span class="field-label">Sign-in username</span>
+        <strong>{{ customer.get_username }}</strong>
+      </div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.first_name.id_for_label }}">First name</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<p class="field-error">{{ form.first_name.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.last_name.id_for_label }}">Last name</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<p class="field-error">{{ form.last_name.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.email.id_for_label }}">Email address</label>
+          {{ form.email }}
+          {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Used to match bookings, MPI claims and photo requests.</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.phone.id_for_label }}">Phone number</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<p class="field-error">{{ form.phone.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Used to match callbacks and the other request types.</p>
+        </div>
+      </div>
+
+      {% if is_new %}
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.password1.id_for_label }}">Temporary password</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}<p class="field-error">{{ form.password1.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Share this with the customer directly. They can change it after signing in.</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.password2.id_for_label }}">Confirm password</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}<p class="field-error">{{ form.password2.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{% if is_new %}person_add{% else %}save{% endif %}</span>
+          {% if is_new %}Create customer{% else %}Save details{% endif %}
+        </button>
+        <a class="staff-btn staff-btn-secondary" href="{% url 'staff_customers' %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    {% if not is_new %}
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Account state</p>
+          <h3 class="staff-card-title">{% if customer.is_active %}Active{% else %}Deactivated{% endif %}</h3>
+        </div>
+      </div>
+      <p class="staff-help-copy">{% if customer.is_active %}This customer can sign in and see their {{ request_count }} linked request{{ request_count|pluralize }}.{% else %}This customer cannot sign in. Activate the account from the Customers page when they are ready.{% endif %}</p>
+      <div class="staff-account-actions">
+        <a class="staff-btn staff-btn-secondary w-full" href="{% url 'staff_customer_password' customer.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">key</span>
+          Reset password
+        </a>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Linking</p>
+          <h3 class="staff-card-title">Matches by email or phone</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> Existing requests with the same email or phone are linked when you save.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span> New requests from this customer are linked automatically when they use the same contact details.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">cancel</span> Requests already linked to another customer are never moved.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">cancel</span> Internal notes and costs are never shown to the customer.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

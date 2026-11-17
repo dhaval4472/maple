@@ -1,0 +1,124 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Windshield Chip Checker | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}A preliminary windshield chip checker for Winnipeg drivers. Describe the chip size, type and location to see whether repair or replacement is usually the next step.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-8 lg:pt-12 lg:pb-10" data-rail-label="Chip checker">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <a class="hover:text-primary transition-colors" href="{% url 'tools' %}">Tools</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Windshield chip checker</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Windshield chip checker</p>
+        <h1 class="display-2 mt-3 max-w-[18ch]">Repair or replace? Start here.</h1>
+        <p class="lede mt-5 max-w-[56ch] text-on-surface-variant">
+          Describe the damage and we will give you a preliminary guide based on common glass-repair rules. The only way to confirm is an in-person look at the windshield.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">car_repair</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed"><strong class="text-on-surface">Chips can spread.</strong> Avoid slamming doors, temperature shocks and car washes until the glass has been checked.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <aside class="lg:col-span-4 space-y-4" data-stagger>
+        <div class="rail-card">
+          <p class="stamp text-primary">Typical guidance</p>
+          <ul class="tool-list mt-3">
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Small bullseye or pit, away from the driver's view: often repairable</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Long crack or damage at the edge: usually replacement</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Damage in the driver's line of sight: assess in person</li>
+          </ul>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">What to bring</p>
+          <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Your vehicle, the registration and — if this is an MPI claim — the claim number. A photo of the chip helps us prepare.</p>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-3" href="{% url 'photo_request' %}">
+            Send a photo first
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8">
+        <div class="tool-panel" data-chip-checker>
+          <div class="tool-panel-head">
+            <div>
+              <p class="stamp text-primary">Chip details</p>
+              <h2 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1">Describe what you see.</h2>
+            </div>
+            <span class="tool-step-count" data-chip-progress-label>0 of 3 answered</span>
+          </div>
+
+          <div class="tool-block">
+            <fieldset>
+              <legend class="tool-question">1. What kind of damage is it?</legend>
+              <div class="tool-chip-grid" role="group" aria-label="Damage type">
+                <button type="button" class="tool-choice" data-chip-type="bullseye" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">radio_button_checked</span>Bullseye</button>
+                <button type="button" class="tool-choice" data-chip-type="star" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">star</span>Star break</button>
+                <button type="button" class="tool-choice" data-chip-type="crack" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">linear_scale</span>Crack</button>
+                <button type="button" class="tool-choice" data-chip-type="pit" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">circle</span>Small pit</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="tool-block">
+            <fieldset>
+              <legend class="tool-question">2. How big is it?</legend>
+              <div class="tool-chip-grid" role="group" aria-label="Damage size">
+                <button type="button" class="tool-choice" data-chip-size="small" aria-pressed="false">Small · under 1 inch</button>
+                <button type="button" class="tool-choice" data-chip-size="medium" aria-pressed="false">Medium · 1–2 inches</button>
+                <button type="button" class="tool-choice" data-chip-size="large" aria-pressed="false">Large · over 2 inches</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="tool-block">
+            <fieldset>
+              <legend class="tool-question">3. Where is it?</legend>
+              <div class="tool-chip-grid" role="group" aria-label="Damage location">
+                <button type="button" class="tool-choice" data-chip-location="driver" aria-pressed="false">Driver's line of sight</button>
+                <button type="button" class="tool-choice" data-chip-location="passenger" aria-pressed="false">Passenger side</button>
+                <button type="button" class="tool-choice" data-chip-location="edge" aria-pressed="false">Near the edge</button>
+                <button type="button" class="tool-choice" data-chip-location="unsure" aria-pressed="false">Not sure</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="tool-result" data-chip-result hidden aria-live="polite">
+            <div class="tool-result-head">
+              <span class="tool-result-icon"><span class="material-symbols-outlined" data-chip-result-icon aria-hidden="true">car_repair</span></span>
+              <div>
+                <p class="stamp text-primary">Preliminary guide</p>
+                <h3 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1" data-chip-result-title></h3>
+              </div>
+            </div>
+            <p class="text-sm text-on-surface-variant mt-4 leading-relaxed" data-chip-result-copy></p>
+            <ul class="tool-checklist" data-chip-result-list></ul>
+            <div class="tool-result-actions">
+              <button type="button" class="btn-primary h-11 px-5" data-callback-open data-service="Windshield repair or replacement">Ask about this chip</button>
+              <a class="btn-secondary h-11 px-5" href="{% url 'photo_request' %}">Send a photo</a>
+            </div>
+            <p class="text-[11px] text-on-surface-variant mt-3">This is not a safety inspection. A chip or crack can worsen without warning. Have the glass checked in person.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

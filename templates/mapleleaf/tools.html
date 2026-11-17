@@ -1,0 +1,91 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Repair Tools &amp; Claim Help | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}Use free repair tools from Maple Leaf Auto Body &amp; Glass in Winnipeg: a planning repair estimate, MPI claim navigator, windshield chip checker and repair-versus-replace guide.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12 lg:pb-12" data-rail-label="Tools">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Tools</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Self-serve repair tools</p>
+        <h1 class="display-2 mt-3 max-w-[17ch]">A clearer next step, before you call.</h1>
+        <p class="lede mt-5 max-w-[54ch] text-on-surface-variant">
+          Four short tools for the questions we hear most: what the work may cost, what to do with an MPI claim, whether a windshield chip can be repaired, and how repair and replacement compare. Each one is a starting point — not a coverage decision or a final quote.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">info</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed"><strong class="text-on-surface">No account, no obligation.</strong> The tools run without a sign-in. Send a request only if you want a person to follow up.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-14 lg:pb-20">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" data-stagger>
+      {% for tool in tools %}
+      <a class="tool-card tool-card-lg" href="{% url 'tools' %}{{ tool.slug }}/" data-analytics="tool_card" data-analytics-label="{{ tool.title }}">
+        <span class="tool-card-icon"><span class="material-symbols-outlined" aria-hidden="true">{{ tool.icon }}</span></span>
+        <span class="tool-card-time">{{ tool.time }}</span>
+        <h2 class="tool-card-title">{{ tool.title }}</h2>
+        <p class="tool-card-copy">{{ tool.summary }}</p>
+        <span class="tool-card-cta">{{ tool.cta }} <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span></span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+      <div class="rail-card">
+        <p class="stamp text-primary">Prefer to skip the form?</p>
+        <h2 class="font-headline font-bold text-lg tracking-tight mt-2">Book a preferred drop-off window.</h2>
+        <p class="text-sm text-on-surface-variant mt-1.5 leading-relaxed">Tell us the vehicle, the service and a two-hour window that works. The shop confirms capacity by phone.</p>
+        <a class="btn-secondary h-11 px-4 mt-4 w-fit" href="{% url 'booking' %}">
+          <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">calendar_month</span>
+          Request a drop-off
+        </a>
+      </div>
+      <div class="rail-card">
+        <p class="stamp text-primary">Have photos already?</p>
+        <h2 class="font-headline font-bold text-lg tracking-tight mt-2">Send damage photos with context.</h2>
+        <p class="text-sm text-on-surface-variant mt-1.5 leading-relaxed">Upload up to four photos. We use them to prepare for the conversation, not to promise a final repair price.</p>
+        <a class="btn-secondary h-11 px-4 mt-4 w-fit" href="{% url 'photo_request' %}">
+          <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">add_a_photo</span>
+          Start a photo request
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="dark-panel p-7 sm:p-10 lg:p-12">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div class="max-w-[50ch]">
+          <p class="stamp text-white/50">A note on the answers</p>
+          <h2 class="h2 text-white mt-3">Tools narrow the conversation. They do not replace an inspection.</h2>
+          <p class="text-white/70 mt-3 leading-relaxed">Repair scope, safety and MPI coverage depend on the vehicle and the details of the claim. A person at the shop confirms the next step.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+          <button type="button" class="btn-primary h-12 px-5" data-callback-open data-service="General enquiry">Ask the shop</button>
+          <a class="h-12 px-5 inline-flex items-center justify-center gap-2 rounded border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+            (204) 586-8253
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

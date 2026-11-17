@@ -1,0 +1,385 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-secondary" href="{% url 'home' %}" target="_blank" rel="noopener">
+  <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+  <span class="hidden sm:inline">View website</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">{{ greeting }}, {{ display_name }}</p>
+    <h2 class="staff-page-title">Here is what needs you today.</h2>
+    <p class="staff-page-lede">New requests appear here the moment someone uses the website. Open a request, call the customer, then update its status so nothing gets lost.</p>
+  </div>
+  <div class="staff-page-actions">
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_callbacks' %}?status=new">
+      <span class="material-symbols-outlined" aria-hidden="true">inbox</span>
+      Open request inbox
+    </a>
+  </div>
+</div>
+
+{% if not email_configured %}
+<div class="staff-banner staff-banner-warning">
+  <span class="material-symbols-outlined" aria-hidden="true">mark_email_unread</span>
+  <div>
+    <strong>Email notifications are not switched on yet.</strong>
+    <p>Requests are still saved here in the staff area and the Django admin. To also send each request to the shop inbox, the hosting provider needs the SMTP settings listed in <code>DEPLOYMENT.md</code>.</p>
+  </div>
+  <a class="staff-btn staff-btn-secondary shrink-0" href="{% url 'staff_account' %}">Account details</a>
+</div>
+{% endif %}
+
+<div class="staff-stat-grid">
+  <a class="staff-stat" href="{% url 'staff_callbacks' %}?status=new">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">phone_in_talk</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ counts.callbacks }}</strong>
+      <span class="staff-stat-label">Callbacks waiting</span>
+      <span class="staff-stat-hint">Phone requests marked new</span>
+    </span>
+    <span class="material-symbols-outlined staff-stat-arrow" aria-hidden="true">arrow_forward</span>
+  </a>
+  <a class="staff-stat" href="{% url 'staff_bookings' %}?status=new">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">calendar_month</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ counts.bookings }}</strong>
+      <span class="staff-stat-label">Bookings to confirm</span>
+      <span class="staff-stat-hint">Preferred windows, not promises</span>
+    </span>
+    <span class="material-symbols-outlined staff-stat-arrow" aria-hidden="true">arrow_forward</span>
+  </a>
+  <a class="staff-stat" href="{% url 'staff_claims' %}?status=new">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">assignment</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ counts.claims }}</strong>
+      <span class="staff-stat-label">MPI questions</span>
+      <span class="staff-stat-hint">Navigator answers to review</span>
+    </span>
+    <span class="material-symbols-outlined staff-stat-arrow" aria-hidden="true">arrow_forward</span>
+  </a>
+  <a class="staff-stat" href="{% url 'staff_photos' %}?status=new">
+    <span class="staff-stat-icon"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span></span>
+    <span class="staff-stat-body">
+      <strong class="staff-stat-number">{{ counts.photos }}</strong>
+      <span class="staff-stat-label">Photo requests</span>
+      <span class="staff-stat-hint">Damage photos to look at</span>
+    </span>
+    <span class="material-symbols-outlined staff-stat-arrow" aria-hidden="true">arrow_forward</span>
+  </a>
+</div>
+
+<section class="staff-card staff-shop-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">Shop floor</p>
+      <h3 class="staff-card-title">Work in the shop</h3>
+    </div>
+    <div class="staff-shop-links">
+      <a class="staff-text-link" href="{% url 'staff_work' %}">Open work board <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+      <a class="staff-btn staff-btn-primary" href="{% url 'staff_work_create' %}">
+        <span class="material-symbols-outlined" aria-hidden="true">add_task</span>
+        Assign work
+      </a>
+    </div>
+  </div>
+
+  <div class="staff-shop-metrics">
+    <a class="staff-shop-metric" href="{% url 'staff_work' %}?status=assigned">
+      <strong>{{ ticket_counts.assigned }}</strong>
+      <span>Assigned</span>
+    </a>
+    <a class="staff-shop-metric" href="{% url 'staff_work' %}?status=in_progress">
+      <strong>{{ ticket_counts.in_progress }}</strong>
+      <span>In progress</span>
+    </a>
+    <a class="staff-shop-metric" href="{% url 'staff_work' %}?status=completed">
+      <strong>{{ ticket_counts.completed_week }}</strong>
+      <span>Done this week</span>
+    </a>
+    <a class="staff-shop-metric {% if ticket_counts.overdue %}is-alert{% endif %}" href="{% url 'staff_work' %}">
+      <strong>{{ ticket_counts.overdue }}</strong>
+      <span>Overdue</span>
+    </a>
+  </div>
+
+  {% if shop_floor %}
+  <ul class="staff-schedule-list staff-shop-list">
+    {% for ticket in shop_floor %}
+    <li>
+      <a class="staff-schedule-row" href="{% url 'staff_work_detail' ticket.pk %}">
+        <span class="staff-schedule-date">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if ticket.status == 'in_progress' %}build{% else %}assignment{% endif %}</span>
+        </span>
+        <span class="staff-schedule-body">
+          <strong>{{ ticket.work_type }}</strong>
+          <span>{{ ticket.vehicle }}</span>
+          <small>{{ ticket.assignee.get_full_name|default:ticket.assignee.get_username }}{% if ticket.due_date %} · due {{ ticket.due_date|date:"M j" }}{% endif %}</small>
+        </span>
+        <span class="staff-status {% if ticket.status == 'in_progress' %}is-active{% else %}is-new{% endif %}">{{ ticket.get_status_display }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="staff-muted-note">No open work tickets. Assign one when a job is ready for the shop floor.</p>
+  {% endif %}
+</section>
+
+<section class="staff-card staff-shop-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">Stockroom</p>
+      <h3 class="staff-card-title">Parts and reordering</h3>
+    </div>
+    <div class="staff-shop-links">
+      <a class="staff-text-link" href="{% url 'staff_reorder' %}">Open reorder list <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+      <a class="staff-btn staff-btn-primary" href="{% url 'staff_part_create' %}">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        New part
+      </a>
+    </div>
+  </div>
+
+  <div class="staff-shop-metrics">
+    <a class="staff-shop-metric {% if stock_low_count %}is-alert{% endif %}" href="{% url 'staff_reorder' %}">
+      <strong>{{ stock_low_count }}</strong>
+      <span>To reorder</span>
+    </a>
+    <a class="staff-shop-metric {% if stock_critical_count %}is-alert{% endif %}" href="{% url 'staff_parts' %}?show=critical">
+      <strong>{{ stock_critical_count }}</strong>
+      <span>Critical low</span>
+    </a>
+    <a class="staff-shop-metric" href="{% url 'staff_parts' %}">
+      <strong>{{ stock_used_week }}</strong>
+      <span>Used this week</span>
+    </a>
+    <a class="staff-shop-metric" href="{% url 'staff_parts' %}">
+      <strong>${{ stock_value|floatformat:0 }}</strong>
+      <span>Stock value</span>
+    </a>
+  </div>
+
+  {% if stock_parts %}
+  <ul class="staff-schedule-list staff-shop-list">
+    {% for part in stock_parts %}
+    <li>
+      <a class="staff-schedule-row" href="{% url 'staff_part_detail' part.pk %}">
+        <span class="staff-schedule-date">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if part.quantity_on_hand <= 0 %}production_quantity_limits{% else %}shopping_cart{% endif %}</span>
+        </span>
+        <span class="staff-schedule-body">
+          <strong>{{ part.name }}</strong>
+          <span>{{ part.sku }}{% if part.bin_location %} · bin {{ part.bin_location }}{% endif %}</span>
+          <small>{{ part.quantity_on_hand }} on hand · reorder at {{ part.reorder_level }}{% if part.supplier %} · {{ part.supplier.name }}{% endif %}</small>
+        </span>
+        {% if part.is_critical %}<span class="staff-status is-bad">Critical</span>{% else %}<span class="staff-status is-warn">Order {{ part.suggested_order_quantity }}</span>{% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="staff-muted-note">Nothing is below its reorder level. {{ stock_part_count }} active part{{ stock_part_count|pluralize }} are in the catalogue.</p>
+  {% endif %}
+</section>
+
+<div class="staff-columns">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Needs a reply</p>
+        <h3 class="staff-card-title">Newest requests</h3>
+      </div>
+      <a class="staff-text-link" href="{% url 'staff_callbacks' %}">View inbox <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+    </div>
+
+    {% if attention %}
+    <ul class="staff-request-list">
+      {% for item in attention %}
+      <li>
+        <a class="staff-request-row" href="{{ item.url }}">
+          <span class="staff-request-icon"><span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span></span>
+          <span class="staff-request-main">
+            <span class="staff-request-top">
+              <strong>{{ item.name }}</strong>
+              <span class="staff-status is-new">New</span>
+            </span>
+            <span class="staff-request-summary">{{ item.summary }}</span>
+            <span class="staff-request-meta">{{ item.label }} · {{ item.reference }} · {{ item.created_at|date:"M j · g:i A" }}</span>
+          </span>
+          <span class="material-symbols-outlined staff-request-arrow" aria-hidden="true">chevron_right</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="staff-empty staff-empty-compact">
+      <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+      <p><strong>Nothing new right now.</strong> New website requests will appear here automatically.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Schedule</p>
+        <h3 class="staff-card-title">Upcoming drop-offs</h3>
+      </div>
+      <a class="staff-text-link" href="{% url 'staff_bookings' %}">All bookings <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+    </div>
+
+    {% if upcoming %}
+    <ul class="staff-schedule-list">
+      {% for booking in upcoming %}
+      <li>
+        <a class="staff-schedule-row" href="{% url 'staff_booking_detail' booking.pk %}">
+          <span class="staff-schedule-date">
+            <strong>{{ booking.preferred_date|date:"j" }}</strong>
+            <small>{{ booking.preferred_date|date:"M" }}</small>
+          </span>
+          <span class="staff-schedule-body">
+            <strong>{{ booking.full_name }}</strong>
+            <span>{{ booking.vehicle }} · {{ booking.preferred_window }}</span>
+            <small>{{ booking.service }}</small>
+          </span>
+          <span class="staff-status {% if booking.status == 'confirmed' %}is-good{% elif booking.status == 'declined' %}is-bad{% else %}is-new{% endif %}">
+            {{ booking.get_status_display }}
+          </span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="staff-empty staff-empty-compact">
+      <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
+      <p><strong>No upcoming drop-offs.</strong> Booking requests will show here once someone asks for a window.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+
+<div class="staff-columns">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Public website</p>
+        <h3 class="staff-card-title">Content at a glance</h3>
+      </div>
+    </div>
+
+    <div class="staff-content-rows">
+      <a class="staff-content-row" href="{% url 'staff_reviews' %}">
+        <span class="staff-content-icon"><span class="material-symbols-outlined" aria-hidden="true">reviews</span></span>
+        <span class="staff-content-copy">
+          <strong>Customer reviews</strong>
+          <small>{{ published_reviews }} visible of {{ total_reviews }} saved</small>
+        </span>
+        <span class="staff-content-value">{{ published_reviews }}/{{ total_reviews }}</span>
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </a>
+      <a class="staff-content-row" href="{% url 'staff_stories' %}">
+        <span class="staff-content-icon"><span class="material-symbols-outlined" aria-hidden="true">auto_stories</span></span>
+        <span class="staff-content-copy">
+          <strong>Before &amp; after stories</strong>
+          <small>{{ public_stories }} public of {{ total_stories }} saved</small>
+        </span>
+        <span class="staff-content-value">{{ public_stories }}/{{ total_stories }}</span>
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </a>
+      <a class="staff-content-row" href="{% url 'staff_analytics' %}">
+        <span class="staff-content-icon"><span class="material-symbols-outlined" aria-hidden="true">monitoring</span></span>
+        <span class="staff-content-copy">
+          <strong>Website activity</strong>
+          <small>{{ week_page_views }} page views in the last 7 days</small>
+        </span>
+        <span class="staff-content-value">{{ week_page_views }}</span>
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </a>
+    </div>
+
+    {% if public_stories == 0 %}
+    <p class="staff-note">
+      <span class="material-symbols-outlined" aria-hidden="true">info</span>
+      The gallery is showing an honest empty state until real photos and written customer permission are added. No stock photos are used.
+    </p>
+    {% endif %}
+  </section>
+
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Last 7 days</p>
+        <h3 class="staff-card-title">Website activity</h3>
+      </div>
+      <a class="staff-text-link" href="{% url 'staff_analytics' %}">Open report <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+    </div>
+
+    <div class="staff-mini-metrics">
+      <div>
+        <strong>{{ week_page_views }}</strong>
+        <span>Page views</span>
+      </div>
+      <div>
+        <strong>{{ week_leads }}</strong>
+        <span>New requests</span>
+      </div>
+    </div>
+
+    {% if top_pages %}
+    <div class="staff-bars">
+      {% for page in top_pages %}
+      <div class="staff-bar-row">
+        <span class="staff-bar-label">{{ page.path|default:"/" }}</span>
+        <span class="staff-bar-track"><span class="staff-bar-fill" style="width: {% widthratio page.count top_pages.0.count 100 %}%"></span></span>
+        <span class="staff-bar-count">{{ page.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="staff-muted-note">No page views recorded in the last 7 days yet.</p>
+    {% endif %}
+
+    <p class="staff-note">
+      <span class="material-symbols-outlined" aria-hidden="true">shield</span>
+      First-party counts only. Visitors who send “Do Not Track” are not recorded.
+    </p>
+  </section>
+</div>
+
+<section class="staff-card staff-quick-card">
+  <div>
+    <p class="staff-card-kicker">Shortcuts</p>
+    <h3 class="staff-card-title">Common shop tasks</h3>
+  </div>
+  <div class="staff-quick-actions">
+    <a class="staff-quick-link" href="{% url 'staff_work_create' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">add_task</span>
+      Assign work
+    </a>
+    <a class="staff-quick-link" href="{% url 'staff_team' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+      Manage team
+    </a>
+    <a class="staff-quick-link" href="{% url 'staff_review_create' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">add_comment</span>
+      Add a review
+    </a>
+    <a class="staff-quick-link" href="{% url 'staff_story_create' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>
+      Add a repair story
+    </a>
+    <a class="staff-quick-link" href="{% url 'staff_lead_export' 'booking' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">download</span>
+      Export bookings
+    </a>
+    <a class="staff-quick-link" href="{% url 'staff_password_change' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">key</span>
+      Change password
+    </a>
+  </div>
+</section>
+{% endblock %}

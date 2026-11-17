@@ -1,0 +1,133 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Repair vs Replace Guide | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}Compare repair and replacement considerations for collision, body, glass and mechanical damage. A plain-language guide from Maple Leaf Auto Body &amp; Glass in Winnipeg.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-8 lg:pt-12 lg:pb-10" data-rail-label="Repair vs replace">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <a class="hover:text-primary transition-colors" href="{% url 'tools' %}">Tools</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Repair vs replace</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Repair vs replace</p>
+        <h1 class="display-2 mt-3 max-w-[18ch]">Understand the trade-offs before you decide.</h1>
+        <p class="lede mt-5 max-w-[56ch] text-on-surface-variant">
+          Repair and replacement are not always a simple cost comparison. Damage type, vehicle age, safety systems and claim rules all change the answer. This guide shows the considerations — not a price promise.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">balance</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed"><strong class="text-on-surface">The shop confirms the scope.</strong> Hidden damage and parts availability can change the recommendation after inspection.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <aside class="lg:col-span-4 space-y-4" data-stagger>
+        <div class="rail-card">
+          <p class="stamp text-primary">Repair usually makes sense when…</p>
+          <ul class="tool-list mt-3">
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>The damaged part can be safely straightened or refinished</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>The structure and safety systems are intact</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Replacement parts are unavailable or would add weeks</li>
+          </ul>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">Replacement may be considered when…</p>
+          <ul class="tool-list tool-list-muted mt-3">
+            <li><span class="material-symbols-outlined" aria-hidden="true">remove</span>The part is cracked, crushed or structurally compromised</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">remove</span>A repair would not restore safe operation</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">remove</span>The claim or warranty requires a new part</li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8">
+        <div class="tool-panel" data-repair-compare>
+          <div class="tool-panel-head">
+            <div>
+              <p class="stamp text-primary">Compare your situation</p>
+              <h2 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1">Three quick questions.</h2>
+            </div>
+            <span class="tool-step-count" data-repair-progress-label>0 of 3 answered</span>
+          </div>
+
+          <div class="tool-block">
+            <fieldset>
+              <legend class="tool-question">1. What is damaged?</legend>
+              <div class="tool-chip-grid" role="group" aria-label="Damage type">
+                <button type="button" class="tool-choice" data-compare-damage="cosmetic" aria-pressed="false">Dent, scratch or paint</button>
+                <button type="button" class="tool-choice" data-compare-damage="structural" aria-pressed="false">Collision or structural</button>
+                <button type="button" class="tool-choice" data-compare-damage="glass" aria-pressed="false">Windshield or glass</button>
+                <button type="button" class="tool-choice" data-compare-damage="mechanical" aria-pressed="false">Mechanical part</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="tool-block">
+            <fieldset>
+              <legend class="tool-question">2. How old is the vehicle?</legend>
+              <div class="tool-chip-grid" role="group" aria-label="Vehicle age">
+                <button type="button" class="tool-choice" data-compare-age="new" aria-pressed="false">Under 5 years</button>
+                <button type="button" class="tool-choice" data-compare-age="mid" aria-pressed="false">5–10 years</button>
+                <button type="button" class="tool-choice" data-compare-age="old" aria-pressed="false">Over 10 years</button>
+                <button type="button" class="tool-choice" data-compare-age="unsure" aria-pressed="false">Not sure</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="tool-block">
+            <fieldset>
+              <legend class="tool-question">3. How is it being paid for?</legend>
+              <div class="tool-chip-grid" role="group" aria-label="Payment route">
+                <button type="button" class="tool-choice" data-compare-payment="mpi" aria-pressed="false">MPI claim</button>
+                <button type="button" class="tool-choice" data-compare-payment="private" aria-pressed="false">Private / self-pay</button>
+                <button type="button" class="tool-choice" data-compare-payment="unsure" aria-pressed="false">Not sure yet</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="tool-result" data-compare-result hidden aria-live="polite">
+            <div class="tool-result-head">
+              <span class="tool-result-icon"><span class="material-symbols-outlined" data-compare-result-icon aria-hidden="true">balance</span></span>
+              <div>
+                <p class="stamp text-primary">What usually happens next</p>
+                <h3 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1" data-compare-result-title></h3>
+              </div>
+            </div>
+            <p class="text-sm text-on-surface-variant mt-4 leading-relaxed" data-compare-result-copy></p>
+            <div class="compare-grid">
+              <div class="compare-col">
+                <h4>Repair may be the better fit if…</h4>
+                <ul data-compare-repair-list></ul>
+              </div>
+              <div class="compare-col">
+                <h4>Replacement may be the better fit if…</h4>
+                <ul data-compare-replace-list></ul>
+              </div>
+            </div>
+            <div class="tool-result-actions">
+              <button type="button" class="btn-primary h-11 px-5" data-callback-open data-service="Repair vs replace question">Talk it through</button>
+              <a class="btn-secondary h-11 px-5" href="{% url 'booking' %}">Request a drop-off</a>
+            </div>
+            <p class="text-[11px] text-on-surface-variant mt-3">No final repair price or coverage outcome is promised here. The shop confirms the scope after inspection.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "customer/base.html" %}
+
+{% block content %}
+<section class="customer-hero">
+  <div class="customer-hero-copy">
+    <p class="stamp text-white/60">Your account</p>
+    <h1>Hi, {{ customer_profile.user.first_name|default:customer_profile.user.get_username }}.</h1>
+    <p>Every request the shop has linked to your account, with the latest status. Need to change something? Call the shop and we will update it.</p>
+    <div class="customer-hero-contact">
+      {% if customer_profile.user.email %}
+      <span><span class="material-symbols-outlined" aria-hidden="true">mail</span>{{ customer_profile.user.email }}</span>
+      {% endif %}
+      {% if customer_profile.phone %}
+      <span><span class="material-symbols-outlined" aria-hidden="true">call</span>{{ customer_profile.phone }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="customer-hero-stats" aria-label="Request summary">
+    <div>
+      <strong>{{ active_count }}</strong>
+      <span>Active</span>
+    </div>
+    <div>
+      <strong>{{ total_count }}</strong>
+      <span>Total requests</span>
+    </div>
+  </div>
+</section>
+
+<div class="customer-layout">
+  <section class="customer-card" aria-labelledby="customer-requests-title">
+    <div class="customer-card-head">
+      <div>
+        <p class="staff-card-kicker">Request history</p>
+        <h2 id="customer-requests-title">My requests</h2>
+      </div>
+      <span class="customer-count">{{ total_count }} total</span>
+    </div>
+
+    {% if rows %}
+    <ul class="customer-request-list">
+      {% for row in rows %}
+      <li class="customer-request">
+        <span class="customer-request-icon">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ row.icon }}</span>
+        </span>
+        <div class="customer-request-body">
+          <div class="customer-request-top">
+            <span class="customer-request-kind">{{ row.kind }}</span>
+            <span class="customer-request-ref">{{ row.reference }}</span>
+            <span class="customer-status is-{{ row.tone }}">{{ row.status }}</span>
+          </div>
+          <h3>{{ row.headline }}</h3>
+          <p>{{ row.detail }}</p>
+          {% if row.note %}<p class="customer-request-note">{{ row.note|truncatechars:220 }}</p>{% endif %}
+          <span class="customer-request-date">Sent {{ row.created|date:"M j, Y" }}</span>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="customer-empty">
+      <span class="material-symbols-outlined" aria-hidden="true">inbox</span>
+      <h3>No requests linked yet.</h3>
+      <p>If you have contacted the shop before, ask us to connect that request to this account. Or start a new one:</p>
+      <div class="customer-empty-actions">
+        <a class="btn-primary h-11 px-5" href="{% url 'booking' %}">Book a visit</a>
+        <a class="btn-secondary h-11 px-5" href="{% url 'claim_navigator' %}">MPI claim help</a>
+        <a class="btn-secondary h-11 px-5" href="{% url 'photo_request' %}">Send photos</a>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  <aside class="customer-aside">
+    <section class="customer-card customer-card-compact">
+      <div class="customer-card-head">
+        <div>
+          <p class="staff-card-kicker">Account</p>
+          <h2>Contact details</h2>
+        </div>
+        <span class="customer-card-icon"><span class="material-symbols-outlined" aria-hidden="true">badge</span></span>
+      </div>
+      <dl class="customer-details">
+        <div><dt>Name</dt><dd>{{ customer_profile.user.get_full_name|default:customer_profile.user.get_username }}</dd></div>
+        <div><dt>Username</dt><dd>{{ customer_profile.user.get_username }}</dd></div>
+        <div><dt>Email</dt><dd>{{ customer_profile.user.email|default:"Not added" }}</dd></div>
+        <div><dt>Phone</dt><dd>{{ customer_profile.phone|default:"Not added" }}</dd></div>
+      </dl>
+      <p class="customer-small-copy">To change your details, call the shop. We keep the account contact information matched to your requests.</p>
+      <a class="staff-btn staff-btn-secondary w-full" href="{% url 'customer_password_change' %}">
+        <span class="material-symbols-outlined" aria-hidden="true">key</span>
+        Change password
+      </a>
+    </section>
+
+    <section class="customer-card customer-card-compact customer-help">
+      <div class="customer-card-head">
+        <div>
+          <p class="staff-card-kicker">Need a hand?</p>
+          <h2>Talk to the shop</h2>
+        </div>
+      </div>
+      <a class="customer-help-row" href="tel:+12045868253">
+        <span class="material-symbols-outlined" aria-hidden="true">call</span>
+        <span><strong>Call (204) 586-8253</strong><small>Mon–Sat, 9:00 AM–6:00 PM</small></span>
+      </a>
+      <a class="customer-help-row" href="{% url 'booking' %}">
+        <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+        <span><strong>Book a visit</strong><small>Send a preferred drop-off window</small></span>
+      </a>
+      <a class="customer-help-row" href="{% url 'claim_navigator' %}">
+        <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+        <span><strong>MPI claim help</strong><small>Work through the repair side</small></span>
+      </a>
+    </section>
+  </aside>
+</div>
+{% endblock %}

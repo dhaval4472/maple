@@ -1,0 +1,197 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Book a Preferred Drop-Off | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}Request a preferred drop-off window at Maple Leaf Auto Body &amp; Glass in North End Winnipeg. Choose a two-hour window and the shop confirms capacity by phone.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12 lg:pb-12" data-rail-label="Book a drop-off">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Book a drop-off</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Preferred drop-off</p>
+        <h1 class="display-2 mt-3 max-w-[16ch]">Pick a window. We confirm the details.</h1>
+        <p class="lede mt-5 max-w-[54ch] text-on-surface-variant">
+          Tell us the vehicle, the service and a two-hour window that works. This is a request, not a confirmed appointment — the shop calls to confirm capacity and the plan.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">info</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed"><strong class="text-on-surface">Why a request?</strong> Repair timing depends on parts, inspections and the work already in the shop. A person confirms what is actually available.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <aside class="lg:col-span-4 space-y-4" data-stagger>
+        <div class="rail-card">
+          <p class="stamp text-primary">What happens next</p>
+          <ol class="tool-numbered mt-3">
+            <li><span>01</span><div><strong>Send the request.</strong><p>A person at the shop reviews the preferred window.</p></div></li>
+            <li><span>02</span><div><strong>We call to confirm.</strong><p>We check capacity, parts and whether an inspection is needed first.</p></div></li>
+            <li><span>03</span><div><strong>Bring the vehicle.</strong><p>You get the confirmed window and what to bring.</p></div></li>
+          </ol>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">Walk-in or callback</p>
+          <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Not ready to pick a date? Call the shop or leave your number and we will call you.</p>
+          <div class="flex flex-col gap-2 mt-3">
+            <a class="btn-secondary h-11 px-4" href="tel:+12045868253"><span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">call</span>(204) 586-8253</a>
+            <button type="button" class="btn-secondary h-11 px-4" data-callback-open data-service="Booking question">Request a callback</button>
+          </div>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">MPI claim?</p>
+          <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Bring your claim number if you have one. MPI decides coverage; we handle the repair side.</p>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-3" href="{% url 'claim_navigator' %}">Open the claim navigator <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span></a>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8">
+        <div class="form-card">
+          {% if success %}
+          <div class="tool-success p-6 sm:p-10" role="status">
+            <span class="success-mark" aria-hidden="true"><span class="material-symbols-outlined text-[30px]">check</span></span>
+            <p class="stamp text-primary mt-5">Request received</p>
+            <h2 class="font-headline text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">We have your preferred window.</h2>
+            <p class="text-sm text-on-surface-variant mt-2 max-w-md mx-auto">
+              {% if success.reference and success.reference != "—" %}Reference <strong class="text-on-surface">{{ success.reference }}</strong>. {% endif %}The shop will call to confirm capacity before the drop-off. This is not a confirmed appointment yet.
+            </p>
+            <div class="booking-summary">
+              <div><span>Requested date</span><strong>{{ success.preferred_date|date:"l, M j, Y" }}</strong></div>
+              <div><span>Window</span><strong>{{ success.preferred_window }}</strong></div>
+              <div><span>Service</span><strong>{{ success.service }}</strong></div>
+              <div><span>Vehicle</span><strong>{{ success.vehicle }}</strong></div>
+            </div>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <a class="btn-primary h-11 px-5" href="tel:+12045868253"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>Call the shop</a>
+              <a class="btn-secondary h-11 px-5" href="{% url 'home' %}">Back to home</a>
+            </div>
+          </div>
+          {% else %}
+          <div class="p-5 sm:p-8 border-b border-surface-container">
+            <p class="stamp text-primary">Booking request</p>
+            <h2 class="font-headline text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">Request a drop-off window.</h2>
+            <p class="text-sm text-on-surface-variant mt-1.5">Two-hour windows, Monday to Saturday. The shop confirms the final time by phone.</p>
+          </div>
+
+          <div class="p-5 sm:p-8">
+            {% if messages %}
+              {% for message in messages %}
+              <div class="form-alert mb-5 {% if message.tags == 'success' %}is-success{% endif %}" role="status">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{% if message.tags == 'success' %}check_circle{% else %}error{% endif %}</span>
+                <span>{{ message }}</span>
+              </div>
+              {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+            <div class="form-alert mb-5" role="alert">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">error</span>
+              <span>Please fix the highlighted fields and try again.</span>
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'booking' %}" data-booking-form novalidate>
+              {% csrf_token %}
+              <div class="hidden" aria-hidden="true">
+                <label for="booking-website">Website</label>
+                {{ form.website }}
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="field-label" for="{{ form.full_name.id_for_label }}">Your name <span class="text-primary">*</span></label>
+                  {{ form.full_name }}
+                  {% if form.full_name.errors %}<p class="field-error">{{ form.full_name.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.phone_number.id_for_label }}">Phone <span class="text-primary">*</span></label>
+                  {{ form.phone_number }}
+                  {% if form.phone_number.errors %}<p class="field-error">{{ form.phone_number.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label class="field-label" for="{{ form.email.id_for_label }}">Email (optional)</label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.vehicle.id_for_label }}">Vehicle <span class="text-primary">*</span></label>
+                  {{ form.vehicle }}
+                  {% if form.vehicle.errors %}<p class="field-error">{{ form.vehicle.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <label class="field-label" for="{{ form.service.id_for_label }}">What do you need? <span class="text-primary">*</span></label>
+                {{ form.service }}
+                {% if form.service.errors %}<p class="field-error">{{ form.service.errors.0 }}</p>{% endif %}
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label class="field-label" for="{{ form.preferred_date.id_for_label }}">Preferred date <span class="text-primary">*</span></label>
+                  {{ form.preferred_date }}
+                  {% if form.preferred_date.errors %}<p class="field-error">{{ form.preferred_date.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.preferred_window.id_for_label }}">Preferred window <span class="text-primary">*</span></label>
+                  {{ form.preferred_window }}
+                  {% if form.preferred_window.errors %}<p class="field-error">{{ form.preferred_window.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+
+              <fieldset class="mt-4">
+                <legend class="field-label">Drop off or wait?</legend>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  {% for radio in form.visit_type %}
+                  <label class="choice-radio">
+                    {{ radio.tag }}
+                    <span>{{ radio.choice_label }}</span>
+                  </label>
+                  {% endfor %}
+                </div>
+                {% if form.visit_type.errors %}<p class="field-error">{{ form.visit_type.errors.0 }}</p>{% endif %}
+              </fieldset>
+
+              <div class="mt-4">
+                <label class="field-label" for="{{ form.notes.id_for_label }}">Vehicle details &amp; notes</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}<p class="field-error">{{ form.notes.errors.0 }}</p>{% endif %}
+              </div>
+
+              <label class="consent-row mt-4">
+                {{ form.privacy_consent }}
+                <span>I agree to be contacted about this request. We use these details only to reply. <a class="text-primary font-semibold hover:underline" href="{% url 'privacy' %}">Privacy</a>.</span>
+              </label>
+              {% if form.privacy_consent.errors %}<p class="field-error">{{ form.privacy_consent.errors.0 }}</p>{% endif %}
+
+              <button type="submit" class="btn-primary w-full h-12 mt-5" data-submit>
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
+                <span data-submit-label>Send booking request</span>
+                <span class="spinner" data-spinner hidden aria-hidden="true"></span>
+              </button>
+              <p class="text-[12px] text-on-surface-variant text-center mt-3 leading-relaxed">The shop confirms capacity before the drop-off. Prefer the phone? <a class="text-primary font-semibold hover:underline" href="tel:+12045868253">(204) 586-8253</a>.</p>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

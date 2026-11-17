@@ -1,0 +1,132 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">{{ greeting|default:"My day" }}{% if display_name %}, {{ display_name }}{% endif %}</p>
+    <h2 class="staff-page-title">My work</h2>
+    <p class="staff-page-lede">These are the jobs the shop owner assigned to you. Open a ticket to see the full details, start working, and mark it complete when it is done.</p>
+  </div>
+</div>
+
+<div class="staff-shop-metrics">
+  <a class="staff-shop-metric" href="{% url 'staff_my_work' %}?status=assigned">
+    <strong>{{ assigned_count }}</strong>
+    <span>To start</span>
+  </a>
+  <a class="staff-shop-metric" href="{% url 'staff_my_work' %}?status=in_progress">
+    <strong>{{ in_progress_count }}</strong>
+    <span>In progress</span>
+  </a>
+  <a class="staff-shop-metric" href="{% url 'staff_my_work' %}?status=completed">
+    <strong>{{ completed_count }}</strong>
+    <span>Completed</span>
+  </a>
+</div>
+
+<div class="staff-tabs" role="tablist" aria-label="Filter my work by status">
+  {% for tab in status_tabs %}
+  <a class="staff-tab {% if tab.active %}is-active{% endif %}" href="{{ tab.url }}" {% if tab.active %}aria-current="page"{% endif %}>
+    {{ tab.label }}
+    <span class="staff-tab-count">{{ tab.count }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<section class="staff-card staff-card-flush">
+  {% if rows %}
+  <div class="staff-table-wrap hidden md:block">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th scope="col">Ticket</th>
+          <th scope="col">Work</th>
+          <th scope="col">Vehicle</th>
+          <th scope="col">Due</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="sr-only">Open</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>
+            <a class="staff-table-ref" href="{{ row.url }}">{{ row.reference }}</a>
+            <span class="staff-table-date">Assigned {{ row.ticket.created_at|date:"M j" }}</span>
+          </td>
+          <td>
+            <a class="staff-table-name" href="{{ row.url }}">{{ row.work_type }}</a>
+          </td>
+          <td>{{ row.vehicle }}</td>
+          <td>
+            {{ row.due_label }}
+            {% if row.is_overdue %}<span class="staff-status is-bad">Overdue</span>{% endif %}
+          </td>
+          <td><span class="staff-status {{ row.status_class }}">{{ row.status_label }}</span></td>
+          <td class="text-right">
+            <a class="staff-row-open" href="{{ row.url }}" aria-label="Open {{ row.reference }}">
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="staff-mobile-list md:hidden">
+    {% for row in rows %}
+    <a class="staff-mobile-row" href="{{ row.url }}">
+      <span class="staff-mobile-row-top">
+        <span>
+          <strong>{{ row.work_type }}</strong>
+          <small>{{ row.reference }} · {{ row.vehicle }}</small>
+        </span>
+        <span class="staff-status {{ row.status_class }}">{{ row.status_label }}</span>
+      </span>
+      <span class="staff-mobile-row-foot">
+        <span class="material-symbols-outlined" aria-hidden="true">event</span>
+        {{ row.due_label }}
+        {% if row.is_overdue %}<span class="staff-status is-bad">Overdue</span>{% endif %}
+        <span class="material-symbols-outlined ml-auto" aria-hidden="true">chevron_right</span>
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">handyman</span>
+    <h3>No work assigned right now.</h3>
+    <p>{% if active_status %}There are no tickets with this status.{% else %}When the shop owner assigns you a job, it will appear here with the vehicle and full instructions.{% endif %}</p>
+    {% if active_status %}<a class="staff-btn staff-btn-secondary" href="{% url 'staff_my_work' %}">Show all my work</a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="staff-pagination" aria-label="My work pages">
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="staff-pagination-links">
+      {% if page_obj.has_previous %}
+      <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous page">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+      </a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:-1 and num <= page_obj.number|add:1 %}
+          {% if num == page_obj.number %}
+          <span class="staff-page-btn is-current" aria-current="page">{{ num }}</span>
+          {% else %}
+          <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ num }}">{{ num }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a class="staff-page-btn" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next page">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}

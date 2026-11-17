@@ -1,0 +1,151 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_estimate_edit' service.slug %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {{ service.title }}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">Optional extras</p>
+    <h2 class="staff-page-title">{{ service.title }} add-ons</h2>
+    <p class="staff-page-lede">Add-ons are flat amounts the visitor can tick before seeing the range. They are added to both ends, so the spread stays honest.</p>
+  </div>
+  <div class="staff-page-actions">
+    <span class="staff-count-chip">{{ addons|length }} total</span>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Current add-ons</p>
+        <h3 class="staff-card-title">What visitors can include</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">playlist_add</span></span>
+    </div>
+
+    {% if addons %}
+    <div class="staff-table-wrap">
+      <table class="staff-table">
+        <thead>
+          <tr>
+            <th scope="col">Add-on</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Status</th>
+            <th scope="col">Order</th>
+            <th scope="col"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for addon in addons %}
+          <tr>
+            <td><span class="staff-table-name">{{ addon.label }}</span></td>
+            <td><span class="staff-table-ref">+${{ addon.amount|floatformat:0 }}</span></td>
+            <td>
+              {% if addon.enabled %}
+              <span class="staff-status is-good">Offered</span>
+              {% else %}
+              <span class="staff-status is-muted">Hidden</span>
+              {% endif %}
+            </td>
+            <td><span class="staff-table-date">{{ addon.display_order }}</span></td>
+            <td>
+              <div class="flex items-center gap-2 justify-end">
+                <a class="staff-btn staff-btn-secondary" href="{% url 'staff_estimate_addon_edit' service.slug addon.pk %}">
+                  <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+                  Edit
+                </a>
+                <form method="post" action="{% url 'staff_estimate_addon_delete' service.slug addon.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Remove “{{ addon.label }}” from {{ service.title }}?">
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    <span class="sr-only">Delete {{ addon.label }}</span>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="staff-empty staff-empty-compact">
+      <span class="material-symbols-outlined" aria-hidden="true">playlist_add</span>
+      <p>No add-ons yet. Visitors see the base range only.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">New add-on</p>
+          <h3 class="staff-card-title">Add an extra</h3>
+        </div>
+      </div>
+
+      <form method="post" class="staff-form-stack">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div>
+          <label class="field-label" for="{{ form.label.id_for_label }}">Add-on name</label>
+          {{ form.label }}
+          {% if form.label.errors %}<p class="field-error">{{ form.label.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="staff-form-grid">
+          <div>
+            <label class="field-label" for="{{ form.amount.id_for_label }}">Amount (CAD)</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}<p class="field-error">{{ form.amount.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="field-label" for="{{ form.display_order.id_for_label }}">Order</label>
+            {{ form.display_order }}
+            {% if form.display_order.errors %}<p class="field-error">{{ form.display_order.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+
+        <label class="staff-check-row" for="{{ form.enabled.id_for_label }}">
+          {{ form.enabled }}
+          <span>
+            <strong>Offer this add-on</strong>
+            <small>Untick to keep it on file without showing it publicly.</small>
+          </span>
+        </label>
+
+        <div class="staff-form-actions">
+          <button type="submit" class="btn-primary h-11 px-5">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
+            Add add-on
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Keep it simple</p>
+          <h3 class="staff-card-title">Two or three is plenty</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Add-ons should be common, easy-to-explain extras.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Avoid anything that depends on hidden damage.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Do not use an add-on to hide a higher base price.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

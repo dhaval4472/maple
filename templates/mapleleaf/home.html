@@ -1,0 +1,867 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Maple Leaf Auto Body & Glass | Auto Repair in North End Winnipeg{% endblock %}
+{% block meta_description %}Family-owned auto body, glass and mechanical repair on Dufferin Ave in North End Winnipeg. Collision repair, windshield replacement, MPI claim support and maintenance.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">{{ review_schema|safe }}</script>
+{% endblock %}
+
+{% block content %}
+<!-- HERO · scroll-scrubbed shop film -->
+<section class="hero-cinema" data-hero-cinema aria-labelledby="hero-title">
+  <div class="hero-cinema-stage" data-hero-stage>
+    <div class="hero-cinema-media" aria-hidden="true">
+      <img
+        class="hero-cinema-backdrop"
+        src="{% static 'img/hero-poster-mobile-bg.webp' %}?v=16"
+        alt=""
+      />
+      <img
+        class="hero-cinema-poster"
+        data-hero-poster
+        src="{% static 'img/hero-poster.webp' %}?v=16"
+        data-src-mobile="{% static 'img/hero-poster-mobile.webp' %}?v=16"
+        alt=""
+      />
+      <canvas
+        class="hero-cinema-canvas"
+        data-hero-canvas
+        data-frame-base="{% static 'hero-frames/desktop' %}"
+        data-frame-base-mobile="{% static 'hero-frames/mobile' %}"
+        data-frame-count="60"
+        data-frame-version="3"
+        width="1280"
+        height="720"
+      ></canvas>
+      <div class="hero-cinema-scrim"></div>
+      <div class="hero-cinema-grid"></div>
+      <div class="hero-cinema-torch" data-hero-torch aria-hidden="true"></div>
+      <div class="hero-cinema-vignette"></div>
+    </div>
+
+    <div class="page-shell hero-cinema-shell">
+      <div class="hero-cinema-content">
+        <div class="hero-cinema-eyebrow">
+          <span class="hero-cinema-status">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span data-shop-status>Checking shop hours…</span>
+          </span>
+          <span class="hero-cinema-eyebrow-sep" aria-hidden="true"></span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[15px]" aria-hidden="true">location_on</span>
+            North End Winnipeg
+          </span>
+          <span class="hero-cinema-eyebrow-sep hidden sm:inline-block" aria-hidden="true"></span>
+          <span class="hero-cinema-mpi">
+            <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+            MPI Direct Repair
+          </span>
+        </div>
+
+        <h1 id="hero-title" class="hero-cinema-title mt-5">
+          Auto body &amp; glass repair,<br class="hidden sm:block"/>
+          <span class="hero-cinema-title-dim">without the runaround</span><span class="hero-cinema-title-dot">.</span>
+        </h1>
+
+        <p class="hero-cinema-lede">
+          Family-owned on Dufferin Ave. Collisions, windshields, MPI claims and the maintenance in between — with plain answers before the work starts.
+        </p>
+
+        <div class="hero-cinema-actions">
+          <button type="button" class="btn-primary h-12 px-5" data-callback-open data-magnetic="4">
+            <span class="sm:hidden">Get a callback</span>
+            <span class="hidden sm:inline">Request a callback</span>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+          </button>
+          <a class="hero-cinema-ghost" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+            (204) 586-8253
+          </a>
+          <a class="hero-cinema-link" href="#triage">
+            Try the repair triage
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">south</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-cinema-foot">
+        <dl class="hero-cinema-facts">
+          <div>
+            <dt>Claims</dt>
+            <dd>MPI Direct Repair</dd>
+          </div>
+          <div>
+            <dt>Vehicles</dt>
+            <dd>Cars · SUVs · pickups</dd>
+          </div>
+          <div>
+            <dt>Shop hours</dt>
+            <dd class="tabular-nums">Mon–Sat · 9–6</dd>
+          </div>
+        </dl>
+
+        <div class="hero-cinema-scroll">
+          <span class="hero-cinema-scroll-label" aria-hidden="true">Scroll the shop</span>
+          <div class="hero-cinema-scrub" data-hero-scrub role="slider" tabindex="0" aria-label="Scrub the shop film" aria-valuemin="1" aria-valuemax="120" aria-valuenow="1" aria-valuetext="Frame 1 of 120">
+            <span class="hero-cinema-scroll-track" aria-hidden="true">
+              <span class="hero-cinema-scroll-fill" data-hero-progress></span>
+              <span class="hero-cinema-scrub-handle"></span>
+            </span>
+          </div>
+          <span class="hero-cinema-readout" aria-hidden="true">
+            <span class="hero-cinema-readout-frame"><span data-hero-frame>001</span>/<span data-hero-total>120</span></span>
+            <span class="hero-cinema-readout-tc" data-hero-timecode>0:00.0</span>
+            <span class="hero-cinema-readout-pct"><span data-hero-count>00</span>%</span>
+          </span>
+          <span class="hero-cinema-load" aria-hidden="true"><span data-hero-load-bar></span></span>
+          <span class="sr-only" data-hero-load>Film 0% loaded</span>
+        </div>
+      </div>
+    </div>
+
+    <span class="hero-cinema-corner hero-cinema-corner-tl" aria-hidden="true"></span>
+    <span class="hero-cinema-corner hero-cinema-corner-tr" aria-hidden="true"></span>
+    <span class="hero-cinema-corner hero-cinema-corner-bl" aria-hidden="true"></span>
+    <span class="hero-cinema-corner hero-cinema-corner-br" aria-hidden="true"></span>
+  </div>
+</section>
+
+<!-- REPAIR TRIAGE -->
+<section class="triage-band" id="triage" data-rail-label="Repair triage">
+  <div class="page-shell">
+    <div class="triage-band-grid">
+      <div class="triage-band-intro" data-reveal="up">
+        <p class="stamp text-primary">Repair triage · 30 seconds</p>
+        <h2 class="h2 mt-2 max-w-[16ch]">Tell us what's going on. We'll point you to the right next step.</h2>
+        <p class="text-on-surface-variant mt-4 max-w-[42ch] leading-relaxed">
+          Pick your vehicle, pick the problem, and the card updates with what usually happens next — typical time, MPI notes and a way to start the conversation.
+        </p>
+
+        <ul class="triage-band-points" data-stagger>
+          <li>
+            <span class="material-symbols-outlined" aria-hidden="true">bolt</span>
+            <div>
+              <strong>Narrows the next step</strong>
+              <span>Glass, collision, brakes or maintenance — in three taps.</span>
+            </div>
+          </li>
+          <li>
+            <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+            <div>
+              <strong>Plain-language timing</strong>
+              <span>Typical turnaround before you commit to anything.</span>
+            </div>
+          </li>
+          <li>
+            <span class="material-symbols-outlined" aria-hidden="true">handshake</span>
+            <div>
+              <strong>No obligation</strong>
+              <span>A preliminary conversation costs nothing.</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="triage-band-card" data-reveal="up">
+        <div class="triage-card" data-triage>
+          <div class="triage-top">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[19px] text-primary" aria-hidden="true">build_circle</span>
+              <span class="font-headline font-bold text-[15px] tracking-tight">Repair triage</span>
+            </div>
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-on-surface-variant">
+              <span class="status-dot status-dot-sm" aria-hidden="true"></span>
+              No obligation
+            </span>
+          </div>
+
+          <div class="triage-body">
+            <fieldset>
+              <legend class="step-label"><span>01</span> What are you driving?</legend>
+              <div class="triage-grid mt-3" role="group" aria-label="Vehicle type">
+                <button type="button" class="triage-option is-active" data-vehicle="Car / Sedan" aria-pressed="true">
+                  <span class="material-symbols-outlined" aria-hidden="true">directions_car</span>
+                  <span>Car</span>
+                </button>
+                <button type="button" class="triage-option" data-vehicle="SUV / Crossover" aria-pressed="false">
+                  <span class="material-symbols-outlined" aria-hidden="true">airport_shuttle</span>
+                  <span>SUV</span>
+                </button>
+                <button type="button" class="triage-option" data-vehicle="Pickup Truck" aria-pressed="false">
+                  <span class="material-symbols-outlined" aria-hidden="true">rv_hookup</span>
+                  <span>Pickup</span>
+                </button>
+              </div>
+            </fieldset>
+
+            <fieldset class="mt-5">
+              <legend class="step-label"><span>02</span> What needs attention?</legend>
+              <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Repair type">
+                <button type="button" class="triage-issue is-active" data-issue="windshield" aria-pressed="true">
+                  <span class="material-symbols-outlined" aria-hidden="true">car_repair</span>
+                  Glass
+                </button>
+                <button type="button" class="triage-issue" data-issue="collision" aria-pressed="false">
+                  <span class="material-symbols-outlined" aria-hidden="true">car_crash</span>
+                  Collision
+                </button>
+                <button type="button" class="triage-issue" data-issue="diagnostics" aria-pressed="false">
+                  <span class="material-symbols-outlined" aria-hidden="true">settings_input_component</span>
+                  Warning light
+                </button>
+                <button type="button" class="triage-issue" data-issue="brakes" aria-pressed="false">
+                  <span class="material-symbols-outlined" aria-hidden="true">disc_full</span>
+                  Brakes
+                </button>
+                <button type="button" class="triage-issue" data-issue="maintenance" aria-pressed="false">
+                  <span class="material-symbols-outlined" aria-hidden="true">oil_barrel</span>
+                  Maintenance
+                </button>
+              </div>
+            </fieldset>
+
+            <div class="triage-result mt-6" aria-live="polite">
+              <div class="triage-result-head">
+                <span class="triage-result-icon">
+                  <span class="material-symbols-outlined" data-triage-field="icon" aria-hidden="true">car_repair</span>
+                </span>
+                <div class="min-w-0">
+                  <p class="stamp text-primary">Recommended next step</p>
+                  <h2 class="font-headline text-[19px] sm:text-[21px] font-bold tracking-tight leading-snug mt-1" data-triage-field="title">Windshield repair &amp; replacement</h2>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface-variant leading-relaxed mt-3" data-triage-field="desc">
+                Stone-chip resin repair or a full glass replacement, sealed to factory spec. MPI direct billing is available on eligible claims.
+              </p>
+              <dl class="triage-meta">
+                <div>
+                  <dt>Typical time</dt>
+                  <dd data-triage-field="time">30 min chip · 2–3 hr replacement</dd>
+                </div>
+                <div>
+                  <dt>Claim notes</dt>
+                  <dd data-triage-field="mpi">MPI direct repair eligible</dd>
+                </div>
+              </dl>
+              <button type="button" class="btn-primary w-full h-11 mt-4" data-triage-cta data-callback-open data-service="Windshield repair or replacement">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">phone_callback</span>
+                <span data-triage-cta-label>Pre-fill a callback</span>
+              </button>
+              <p class="text-[11px] text-on-surface-variant text-center mt-2.5">A preliminary conversation costs nothing.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SELF-SERVE TOOLS -->
+<section class="section bg-surface" id="tools" data-rail-label="Tools">
+  <div class="page-shell">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <p class="stamp text-primary">Before you call</p>
+        <h2 class="h2 mt-2 max-w-[24ch]">Three tools to narrow the next step.</h2>
+      </div>
+      <a class="text-link inline-flex items-center gap-1.5 text-sm shrink-0" href="{% url 'tools' %}">
+        Open the tools hub
+        <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4" data-stagger>
+      {% for tool in tools %}
+      <a class="tool-card" href="{% url 'tools' %}{{ tool.slug }}/" data-analytics="tool_card" data-analytics-label="{{ tool.title }}">
+        <span class="tool-card-icon"><span class="material-symbols-outlined" aria-hidden="true">{{ tool.icon }}</span></span>
+        <span class="tool-card-time">{{ tool.time }}</span>
+        <h3 class="tool-card-title">{{ tool.title }}</h3>
+        <p class="tool-card-copy">{{ tool.summary }}</p>
+        <span class="tool-card-cta">{{ tool.cta }} <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span></span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- SHOP BAND -->
+<section class="pb-14 lg:pb-20">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
+      <figure class="lg:col-span-7 relative rounded-lg overflow-hidden border border-surface-container-high min-h-[260px] sm:min-h-[340px] photo-reveal" data-reveal="photo">
+        <img
+          src="{% static 'img/package/car-on-lift.webp' %}"
+          alt="A vehicle raised on the lift inside the Maple Leaf Auto Body & Glass workshop"
+          class="absolute inset-0 w-full h-full object-cover"
+          loading="lazy"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+        {% include "mapleleaf/partials/inspect_overlay.html" %}
+        <figcaption class="photo-reveal-caption absolute bottom-0 left-0 right-0 p-5 sm:p-6 flex flex-wrap items-end justify-between gap-3 text-white">
+          <div>
+            <p class="stamp text-white/60">On the bench</p>
+            <p class="font-headline font-bold text-lg tracking-tight mt-1">North End Winnipeg, one roof.</p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 backdrop-blur-sm border border-white/15 rounded px-2.5 py-1.5">
+            <span class="material-symbols-outlined text-[15px]" aria-hidden="true">verified</span>
+            MPI Direct Repair
+          </span>
+        </figcaption>
+      </figure>
+
+      <div class="lg:col-span-5 flex flex-col justify-center gap-0" data-stagger>
+        <div class="fact-row">
+          <span class="fact-icon"><span class="material-symbols-outlined" aria-hidden="true">home_work</span></span>
+          <div>
+            <h2 class="font-semibold text-[15px]">Family-owned, locally operated</h2>
+            <p class="text-sm text-on-surface-variant mt-0.5">You talk to the shop, not a call centre.</p>
+          </div>
+        </div>
+        <div class="fact-row">
+          <span class="fact-icon"><span class="material-symbols-outlined" aria-hidden="true">build</span></span>
+          <div>
+            <h2 class="font-semibold text-[15px]">Body, glass and mechanical</h2>
+            <p class="text-sm text-on-surface-variant mt-0.5">One team, one estimate, fewer trips across town.</p>
+          </div>
+        </div>
+        <div class="fact-row">
+          <span class="fact-icon"><span class="material-symbols-outlined" aria-hidden="true">handshake</span></span>
+          <div>
+            <h2 class="font-semibold text-[15px]">Straight answers first</h2>
+            <p class="text-sm text-on-surface-variant mt-0.5">We explain the options before the work begins.</p>
+          </div>
+        </div>
+        <a class="text-link inline-flex items-center gap-1.5 mt-5 text-sm" href="{% url 'about' %}">
+          More about the shop
+          <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES LEDGER -->
+<section class="section bg-surface-container-low border-y border-surface-container" id="services" data-rail-label="Services">
+  <div class="page-shell">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <p class="stamp text-primary">What we do</p>
+        <h2 class="h2 mt-2 max-w-[22ch]">One shop for the whole vehicle.</h2>
+      </div>
+      <a class="text-link inline-flex items-center gap-1.5 text-sm shrink-0" href="{% url 'services' %}">
+        All 10 services
+        <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Vehicle coverage schematic -->
+    <div class="coverage-map" data-reveal="draw" data-coverage>
+      <div class="coverage-head">
+        <span class="stamp text-on-surface-variant">Coverage schematic</span>
+        <span class="coverage-unit">Sedan · SUV · light pickup</span>
+      </div>
+      <div class="coverage-stage">
+        <svg class="coverage-svg" viewBox="0 0 1100 290" aria-hidden="true" focusable="false">
+          <defs>
+            <pattern id="bp-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+              <path d="M44 0H0V44" fill="none" stroke="currentColor" stroke-opacity="0.08" stroke-width="0.6"/>
+            </pattern>
+          </defs>
+          <rect class="bp-grid" width="1100" height="290" fill="url(#bp-grid)"/>
+          <path class="bp-ground" d="M200 240H1060"/>
+
+          <g class="bp-car">
+            <path pathLength="1" class="bp-line" d="M250 196V178C250 160 260 152 280 150L392 146C408 145 418 138 428 126L482 76C498 62 518 56 540 56H752C782 56 804 65 824 84L888 144L992 150C1022 152 1040 164 1046 182L1048 196H970A40 40 0 0 0 890 196H470A40 40 0 0 0 390 196H250Z"/>
+            <path class="bp-line" pathLength="1" d="M508 70H598V112H536L508 70Z"/>
+            <path class="bp-line" pathLength="1" d="M612 70H738L790 112H612V70Z"/>
+            <path class="bp-line" d="M605 116V188M735 118V188"/>
+            <path class="bp-line" d="M560 132H576M688 134H704"/>
+            <path class="bp-line" d="M792 96L808 89L812 98L796 102Z"/>
+            <path class="bp-line" d="M1002 162H1026C1032 162 1036 166 1036 171"/>
+            <rect class="bp-line" x="252" y="160" width="18" height="11" rx="2"/>
+            <circle class="bp-wheel" cx="430" cy="196" r="36"/>
+            <circle class="bp-line" cx="430" cy="196" r="21"/>
+            <circle class="bp-line" cx="430" cy="196" r="5"/>
+            <path class="bp-line" d="M430 175V186M430 206V217M409 196H420M440 196H451"/>
+            <circle class="bp-wheel" cx="930" cy="196" r="36"/>
+            <circle class="bp-line" cx="930" cy="196" r="21"/>
+            <circle class="bp-line" cx="930" cy="196" r="5"/>
+            <path class="bp-line" d="M930 175V186M930 206V217M909 196H920M940 196H951"/>
+          </g>
+
+          <g class="bp-callouts">
+            <path class="bp-lead" pathLength="1" d="M806 92V38H742"/>
+            <circle class="bp-dot" cx="806" cy="92" r="3.4"/>
+            <text class="bp-label" x="734" y="34" text-anchor="end">WINDSHIELD &amp; GLASS</text>
+
+            <path class="bp-lead" pathLength="1" d="M318 148V38H388"/>
+            <circle class="bp-dot" cx="318" cy="148" r="3.4"/>
+            <text class="bp-label" x="396" y="34" text-anchor="start">PAINT &amp; FINISH</text>
+
+            <path class="bp-lead" pathLength="1" d="M1012 176V252H944"/>
+            <circle class="bp-dot" cx="1012" cy="176" r="3.4"/>
+            <text class="bp-label" x="936" y="264" text-anchor="end">MECHANICAL</text>
+
+            <path class="bp-lead" pathLength="1" d="M430 196V252H498"/>
+            <circle class="bp-dot" cx="430" cy="196" r="3.4"/>
+            <text class="bp-label" x="506" y="264" text-anchor="start">BRAKES &amp; WHEELS</text>
+          </g>
+        </svg>
+        <span class="coverage-scan" aria-hidden="true"></span>
+
+        <button type="button" class="coverage-hotspot is-active" style="--x:73.3%;--y:31.7%" data-coverage-point data-title="Windshield &amp; glass" data-copy="Stone-chip resin repair or full glass replacement, sealed to factory spec. MPI direct billing is available on eligible claims." data-meta="30 min chip · 2–3 hr replacement" data-icon="car_repair" aria-pressed="true" aria-label="Show windshield and glass coverage">
+          <span class="coverage-hotspot-dot" aria-hidden="true"></span>
+          <span class="coverage-hotspot-label">Glass</span>
+        </button>
+        <button type="button" class="coverage-hotspot is-start" style="--x:28.9%;--y:51%" data-coverage-point data-title="Paint &amp; finish" data-copy="Dent pulls, panel straightening, surface prep, computerized colour match and clear coat." data-meta="1–3 business days" data-icon="format_paint" aria-pressed="false" aria-label="Show paint and finish coverage">
+          <span class="coverage-hotspot-dot" aria-hidden="true"></span>
+          <span class="coverage-hotspot-label">Paint</span>
+        </button>
+        <button type="button" class="coverage-hotspot is-end" style="--x:92%;--y:60.7%" data-coverage-point data-title="Mechanical" data-copy="Engine, suspension and drivetrain work, plus diagnostics and the maintenance in between." data-meta="Varies with diagnosis" data-icon="settings" aria-pressed="false" aria-label="Show mechanical coverage">
+          <span class="coverage-hotspot-dot" aria-hidden="true"></span>
+          <span class="coverage-hotspot-label">Mechanical</span>
+        </button>
+        <button type="button" class="coverage-hotspot" style="--x:39.1%;--y:67.6%" data-coverage-point data-title="Brakes &amp; wheels" data-copy="Pads, rotors, brake fluid, safety inspections and high-speed spin balancing." data-meta="1–2 hr per axle" data-icon="disc_full" aria-pressed="false" aria-label="Show brakes and wheels coverage">
+          <span class="coverage-hotspot-dot" aria-hidden="true"></span>
+          <span class="coverage-hotspot-label">Brakes</span>
+        </button>
+      </div>
+      <div class="coverage-detail" data-coverage-detail aria-live="polite">
+        <span class="coverage-detail-icon material-symbols-outlined" data-coverage-icon aria-hidden="true">car_repair</span>
+        <div class="min-w-0">
+          <p class="coverage-detail-title" data-coverage-title>Windshield &amp; glass</p>
+          <p class="coverage-detail-copy" data-coverage-copy>Stone-chip resin repair or full glass replacement, sealed to factory spec. MPI direct billing is available on eligible claims.</p>
+        </div>
+        <span class="coverage-detail-meta" data-coverage-meta>30 min chip · 2–3 hr replacement</span>
+      </div>
+      <div class="coverage-legend">
+        <span class="coverage-chip"><span class="coverage-key is-body" aria-hidden="true"></span>Body &amp; glass <b>3</b></span>
+        <span class="coverage-chip"><span class="coverage-key is-mech" aria-hidden="true"></span>Mechanical <b>3</b></span>
+        <span class="coverage-chip"><span class="coverage-key is-maint" aria-hidden="true"></span>Maintenance <b>4</b></span>
+        <span class="coverage-total">10 in-house services</span>
+      </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 md:gap-x-12 border-t border-surface-container-high" data-stagger>
+      <a class="service-row" href="{% url 'service_detail' 'collision' %}">
+        <span class="service-row-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-collision"></use></svg></span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-[15px]">Collision repair</span>
+          <span class="block text-sm text-on-surface-variant mt-0.5">Pulls, panels, bumpers and paint match.</span>
+        </span>
+        <span class="service-row-tag">Body &amp; glass</span>
+        <span class="material-symbols-outlined service-row-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="service-row" href="{% url 'service_detail' 'windshield' %}">
+        <span class="service-row-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-windshield"></use></svg></span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-[15px]">Windshield repair</span>
+          <span class="block text-sm text-on-surface-variant mt-0.5">Chip sealing and full replacement.</span>
+        </span>
+        <span class="service-row-tag">Body &amp; glass</span>
+        <span class="material-symbols-outlined service-row-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="service-row" href="{% url 'service_detail' 'paint' %}">
+        <span class="service-row-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-paint"></use></svg></span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-[15px]">Dent repair &amp; painting</span>
+          <span class="block text-sm text-on-surface-variant mt-0.5">Panel work, colour match, clear coat.</span>
+        </span>
+        <span class="service-row-tag">Body &amp; glass</span>
+        <span class="material-symbols-outlined service-row-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="service-row" href="{% url 'service_detail' 'mechanical' %}">
+        <span class="service-row-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-mechanical"></use></svg></span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-[15px]">Mechanical repair</span>
+          <span class="block text-sm text-on-surface-variant mt-0.5">Suspension, drivetrain and tune-ups.</span>
+        </span>
+        <span class="service-row-tag">Mechanical</span>
+        <span class="material-symbols-outlined service-row-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="service-row" href="{% url 'service_detail' 'diagnostics' %}">
+        <span class="service-row-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-diagnostics"></use></svg></span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-[15px]">Computerized diagnostics</span>
+          <span class="block text-sm text-on-surface-variant mt-0.5">Scan the code, explain the cause.</span>
+        </span>
+        <span class="service-row-tag">Mechanical</span>
+        <span class="material-symbols-outlined service-row-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+      <a class="service-row" href="{% url 'service_detail' 'brakes' %}">
+        <span class="service-row-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ico-brakes"></use></svg></span>
+        <span class="min-w-0">
+          <span class="block font-semibold text-[15px]">Brakes &amp; maintenance</span>
+          <span class="block text-sm text-on-surface-variant mt-0.5">Pads, rotors, safety checks, oil.</span>
+        </span>
+        <span class="service-row-tag">Maintenance</span>
+        <span class="material-symbols-outlined service-row-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-on-surface-variant">
+      <p>Not sure which one you need? The triage above narrows it down.</p>
+      <button type="button" class="text-link inline-flex items-center gap-1.5 w-fit" data-callback-open>
+        Ask us instead
+        <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="section" data-tabs="process" id="process" data-rail-label="Process">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+      <div class="lg:col-span-5">
+        <p class="stamp text-primary">How it goes</p>
+        <h2 class="h2 mt-2 max-w-[18ch]">Three steps. No mystery.</h2>
+        <p class="text-on-surface-variant mt-4 max-w-[42ch] leading-relaxed">From the first phone call to pickup, you know what happens next and who to ask.</p>
+
+        <div class="mt-8 space-y-2" role="tablist" aria-label="Repair process steps" data-stagger>
+          <button type="button" class="step-tab is-active" role="tab" id="process-tab-1" aria-selected="true" aria-controls="process-panel-1" data-tab="1">
+            <span class="step-tab-num">01</span>
+            <span class="min-w-0">
+              <span class="block font-semibold text-[15px]">Tell us what happened</span>
+              <span class="block text-sm text-on-surface-variant mt-0.5">Call or send a callback request with the basics.</span>
+            </span>
+          </button>
+          <button type="button" class="step-tab" role="tab" id="process-tab-2" aria-selected="false" aria-controls="process-panel-2" data-tab="2" tabindex="-1">
+            <span class="step-tab-num">02</span>
+            <span class="min-w-0">
+              <span class="block font-semibold text-[15px]">We look, you decide</span>
+              <span class="block text-sm text-on-surface-variant mt-0.5">Inspection, repair options and a clear next step.</span>
+            </span>
+          </button>
+          <button type="button" class="step-tab" role="tab" id="process-tab-3" aria-selected="false" aria-controls="process-panel-3" data-tab="3" tabindex="-1">
+            <span class="step-tab-num">03</span>
+            <span class="min-w-0">
+              <span class="block font-semibold text-[15px]">We fix, you drive</span>
+              <span class="block text-sm text-on-surface-variant mt-0.5">Scheduled work, updates, and a final walk-around.</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="mt-6 border-l-2 border-primary/40 pl-4 text-sm text-on-surface-variant leading-relaxed">
+          If we find something extra during teardown, we call you before doing the work. No surprise add-ons.
+        </div>
+      </div>
+
+      <div class="lg:col-span-7">
+        <div class="tab-panel is-active" role="tabpanel" id="process-panel-1" aria-labelledby="process-tab-1" data-tab-panel="1">
+          <figure class="process-photo" data-reveal="scan">
+            <img src="{% static 'img/package/car-on-lift.webp' %}" alt="Vehicle on a lift at the shop" loading="lazy"/>
+            {% include "mapleleaf/partials/inspect_overlay.html" %}
+            <figcaption class="process-caption">
+              <span class="stamp text-white/70">Step 01</span>
+              <p class="font-headline font-bold text-lg text-white mt-1">Start with a conversation, not a sales pitch.</p>
+            </figcaption>
+          </figure>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">What to tell us</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">Vehicle year, make and model; what happened; and whether there is an MPI claim number.</p>
+            </div>
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">What happens next</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">We book a drop-off window or ask for photos if the damage is straightforward.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="process-panel-2" aria-labelledby="process-tab-2" data-tab-panel="2" hidden>
+          <figure class="process-photo" data-reveal="scan">
+            <img src="{% static 'img/package/car-repair.webp' %}" alt="Technician inspecting body panels" loading="lazy"/>
+            {% include "mapleleaf/partials/inspect_overlay.html" %}
+            <figcaption class="process-caption">
+              <span class="stamp text-white/70">Step 02</span>
+              <p class="font-headline font-bold text-lg text-white mt-1">Look at the whole picture before quoting.</p>
+            </figcaption>
+          </figure>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">The inspection</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">We check hidden damage, safety systems and parts availability so the estimate is realistic.</p>
+            </div>
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">Your options</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">Repair or replace, claim or private work, and the timing each option means for you.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="process-panel-3" aria-labelledby="process-tab-3" data-tab-panel="3" hidden>
+          <figure class="process-photo" data-reveal="scan">
+            <img src="{% static 'img/package/painting.webp' %}" alt="Automotive painting and refinishing" loading="lazy"/>
+            {% include "mapleleaf/partials/inspect_overlay.html" %}
+            <figcaption class="process-caption">
+              <span class="stamp text-white/70">Step 03</span>
+              <p class="font-headline font-bold text-lg text-white mt-1">Repair, refinish, and a final walk-around.</p>
+            </figcaption>
+          </figure>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">While it is here</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">We keep you posted if the timeline changes. You can always call the front office.</p>
+            </div>
+            <div class="info-block">
+              <h3 class="font-semibold text-sm">At pickup</h3>
+              <p class="text-sm text-on-surface-variant mt-1.5">We walk you through the work, the paperwork and anything to watch for down the road.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MPI CLAIM PANEL -->
+<section class="section" id="claims" data-rail-label="MPI claims">
+  <div class="page-shell">
+    <div class="dark-panel grid grid-cols-1 lg:grid-cols-12 overflow-hidden" data-claim-checklist data-claim-key="mla-claim-home">
+      <div class="lg:col-span-7 p-7 sm:p-10 lg:p-12">
+        <p class="stamp text-white/50">MPI claims</p>
+        <h2 class="h2 text-white mt-3 max-w-[20ch]">Claim number in hand? Bring it to us.</h2>
+        <p class="text-white/70 mt-4 max-w-[46ch] leading-relaxed">
+          As an MPI Direct Repair shop, we can talk through the repair side of your claim and what the shop needs to review your vehicle. Coverage decisions stay with MPI; we handle the work and the communication.
+        </p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <button type="button" class="btn-primary h-12 px-5" data-callback-open data-service="MPI claim question">
+            Ask about your claim
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+          </button>
+          <a class="h-12 px-5 inline-flex items-center justify-center gap-2 rounded border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+            (204) 586-8253
+          </a>
+        </div>
+        <p class="text-xs text-white/60 mt-4">Repair arrangements and coverage depend on the details of your claim.</p>
+      </div>
+
+      <div class="lg:col-span-5 bg-[#252826] border-t lg:border-t-0 lg:border-l border-white/10 p-7 sm:p-10">
+        <div class="claim-head">
+          <div>
+            <h3 class="font-headline font-bold text-lg text-white">What to bring</h3>
+            <span class="stamp text-white/60" data-claim-progress>0 of 4 ready</span>
+          </div>
+          <span class="claim-dial" data-claim-dial aria-hidden="true">
+            <svg viewBox="0 0 52 52">
+              <circle class="claim-dial-track" cx="26" cy="26" r="21"/>
+              <circle class="claim-dial-ring" cx="26" cy="26" r="21" data-claim-ring/>
+              <path class="claim-dial-ticks" d="M26 2v4M26 46v4M2 26h4M46 26h4"/>
+            </svg>
+            <span class="claim-dial-count" data-claim-dial-count>0/4</span>
+          </span>
+        </div>
+        <p class="text-sm text-white/60 mt-1.5">Tick these off before you come in. Your progress is saved on this device.</p>
+
+        <div class="claim-bar mt-4" aria-hidden="true"><span data-claim-bar></span></div>
+
+        <div class="mt-5 space-y-1" data-stagger>
+          <label class="claim-item">
+            <input type="checkbox" data-claim-item/>
+            <span class="claim-box" aria-hidden="true"></span>
+            <span><span class="block text-sm font-medium text-white">MPI claim number</span><span class="block text-xs text-white/50 mt-0.5">From your adjuster or claim letter.</span></span>
+          </label>
+          <label class="claim-item">
+            <input type="checkbox" data-claim-item/>
+            <span class="claim-box" aria-hidden="true"></span>
+            <span><span class="block text-sm font-medium text-white">Vehicle registration</span><span class="block text-xs text-white/50 mt-0.5">The current registration in your name.</span></span>
+          </label>
+          <label class="claim-item">
+            <input type="checkbox" data-claim-item/>
+            <span class="claim-box" aria-hidden="true"></span>
+            <span><span class="block text-sm font-medium text-white">Driver's licence</span><span class="block text-xs text-white/50 mt-0.5">For the estimate and release paperwork.</span></span>
+          </label>
+          <label class="claim-item">
+            <input type="checkbox" data-claim-item/>
+            <span class="claim-box" aria-hidden="true"></span>
+            <span><span class="block text-sm font-medium text-white">Photos of the damage</span><span class="block text-xs text-white/50 mt-0.5">Helpful, but not required for the first visit.</span></span>
+          </label>
+        </div>
+
+        <button type="button" class="text-[12px] text-white/50 hover:text-white mt-4 underline underline-offset-2" data-claim-reset>Reset checklist</button>
+
+        <div class="claim-complete" data-claim-complete hidden>
+          <span class="claim-complete-mark" aria-hidden="true">
+            <span class="material-symbols-outlined">check</span>
+          </span>
+          <div class="min-w-0">
+            <strong>You're ready for the shop.</strong>
+            <span>Bring these items and your claim number. We'll take it from there.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="section bg-surface-container-low border-y border-surface-container" id="gallery" data-rail-label="Gallery">
+  <div class="page-shell">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <p class="stamp text-primary">On the floor</p>
+        <h2 class="h2 mt-2 max-w-[20ch]">The work, up close.</h2>
+      </div>
+      <p class="text-sm text-on-surface-variant max-w-[34ch]">Click any photo to open the workshop gallery. Use the arrow keys to move through it.</p>
+    </div>
+
+    <div class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[150px] sm:auto-rows-[190px]" data-stagger>
+      <button type="button" class="gallery-item col-span-2 row-span-2" data-lightbox data-src="{% static 'img/package/car-repair.webp' %}" data-title="Body repair" data-sub="Panel fitting and structural repair before refinishing.">
+        <img src="{% static 'img/package/car-repair.webp' %}" alt="Body repair work in progress" loading="lazy"/>
+        <span class="gallery-caption"><span class="stamp text-white/60">Body</span><span class="block font-semibold text-white mt-0.5">Panel &amp; structural repair</span></span>
+        <span class="gallery-zoom"><span class="material-symbols-outlined" aria-hidden="true">zoom_in</span></span>
+      </button>
+      <button type="button" class="gallery-item" data-lightbox data-src="{% static 'img/package/painting.webp' %}" data-title="Paint &amp; refinish" data-sub="Colour matching and clear-coat finishing.">
+        <img src="{% static 'img/package/painting.webp' %}" alt="Automotive painting and refinishing" loading="lazy"/>
+        <span class="gallery-caption"><span class="block font-semibold text-white text-sm">Paint &amp; refinish</span></span>
+        <span class="gallery-zoom"><span class="material-symbols-outlined" aria-hidden="true">zoom_in</span></span>
+      </button>
+      <button type="button" class="gallery-item" data-lightbox data-src="{% static 'img/package/car-on-lift.webp' %}" data-title="Shop floor" data-sub="Vehicle intake and inspection on the lift.">
+        <img src="{% static 'img/package/car-on-lift.webp' %}" alt="Vehicle on a lift in the workshop" loading="lazy"/>
+        <span class="gallery-caption"><span class="block font-semibold text-white text-sm">Shop floor</span></span>
+        <span class="gallery-zoom"><span class="material-symbols-outlined" aria-hidden="true">zoom_in</span></span>
+      </button>
+      <button type="button" class="gallery-item col-span-2" data-lightbox data-src="{% static 'img/package/car-repair-1.webp' %}" data-title="Repair detail" data-sub="Close inspection before the estimate is finalised.">
+        <img src="{% static 'img/package/car-repair-1.webp' %}" alt="Detailed vehicle repair work" loading="lazy"/>
+        <span class="gallery-caption"><span class="block font-semibold text-white text-sm">Repair detail</span></span>
+        <span class="gallery-zoom"><span class="material-symbols-outlined" aria-hidden="true">zoom_in</span></span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section" data-review-filter id="reviews" data-rail-label="Reviews">
+  <div class="page-shell">
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+      <div>
+        <p class="stamp text-primary">Driver feedback</p>
+        <h2 class="h2 mt-2 max-w-[20ch]">What customers have shared.</h2>
+      </div>
+      <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter reviews">
+        <button type="button" class="filter-chip is-active" data-review-cat="all" aria-pressed="true">All <span class="tabular-nums">({{ reviews|length }})</span></button>
+        <button type="button" class="filter-chip" data-review-cat="body" aria-pressed="false">Body work</button>
+        <button type="button" class="filter-chip" data-review-cat="quick" aria-pressed="false">Quick service</button>
+      </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4" data-stagger>
+      {% for review in reviews %}
+      <article class="review-card" data-review data-cat="{{ review.category }}">
+        <div class="flex items-center gap-1 text-primary" role="img" aria-label="{{ review.rating }} out of 5 stars">
+          <span class="material-symbols-outlined text-[17px]" aria-hidden="true">star</span><span class="material-symbols-outlined text-[17px]" aria-hidden="true">star</span><span class="material-symbols-outlined text-[17px]" aria-hidden="true">star</span><span class="material-symbols-outlined text-[17px]" aria-hidden="true">star</span><span class="material-symbols-outlined text-[17px]" aria-hidden="true">star</span>
+        </div>
+        <blockquote class="mt-4 text-[15px] leading-relaxed">“{{ review.quote }}”</blockquote>
+        <footer class="mt-5 pt-4 border-t border-surface-container flex items-center justify-between gap-3">
+          <span class="text-sm font-semibold">{{ review.author }}</span>
+          <span class="stamp text-on-surface-variant">{{ review.category_label }}</span>
+        </footer>
+      </article>
+      {% empty %}
+      <p class="text-sm text-on-surface-variant">Customer feedback will appear here once it is published.</p>
+      {% endfor %}
+    </div>
+    <p class="text-sm text-on-surface-variant mt-4" data-review-empty hidden>No reviews in this category yet.</p>
+    <p class="text-xs text-on-surface-variant mt-4">These are individual customer comments. We do not publish an aggregate star rating until the source data is verified.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section bg-surface-container-low border-y border-surface-container" id="faq" data-rail-label="FAQ">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
+      <div class="lg:col-span-4">
+        <p class="stamp text-primary">Help &amp; answers</p>
+        <h2 class="h2 mt-2 max-w-[16ch]">Questions we hear a lot.</h2>
+        <p class="text-on-surface-variant mt-4 max-w-[34ch] leading-relaxed">If yours isn't here, call the shop. A person answers during business hours.</p>
+        <a class="btn-secondary h-11 px-4 mt-6 w-fit" href="tel:+12045868253">
+          <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">call</span>
+          (204) 586-8253
+        </a>
+      </div>
+
+      <div class="lg:col-span-8" data-accordion>
+        <div class="flex justify-end mb-2">
+          <button type="button" class="text-[12px] text-on-surface-variant hover:text-primary underline underline-offset-2" data-faq-toggle-all>Expand all</button>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-toggle" aria-expanded="false" aria-controls="faq-home-1">
+            <span>Where are you located?</span>
+            <span class="material-symbols-outlined faq-icon" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="faq-content-wrapper" id="faq-home-1"><div class="faq-inner"><p class="faq-answer">You can find us at <strong>492 Dufferin Ave, Winnipeg, MB R2W 2Y6</strong>, in the North End. There is on-site drop-off parking.</p></div></div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-toggle" aria-expanded="false" aria-controls="faq-home-2">
+            <span>What are your opening hours?</span>
+            <span class="material-symbols-outlined faq-icon" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="faq-content-wrapper" id="faq-home-2"><div class="faq-inner"><p class="faq-answer">Monday to Saturday, <strong>9:00 AM to 6:00 PM</strong>. We are closed Sundays. Early key drops can be arranged by phone.</p></div></div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-toggle" aria-expanded="false" aria-controls="faq-home-3">
+            <span>Which vehicles do you work on?</span>
+            <span class="material-symbols-outlined faq-icon" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="faq-content-wrapper" id="faq-home-3"><div class="faq-inner"><p class="faq-answer">Passenger cars, SUVs, vans and light pickup trucks. Call before bringing in a heavy fleet vehicle or a heavily modified build.</p></div></div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-toggle" aria-expanded="false" aria-controls="faq-home-4">
+            <span>Can you help with an MPI claim?</span>
+            <span class="material-symbols-outlined faq-icon" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="faq-content-wrapper" id="faq-home-4"><div class="faq-inner"><p class="faq-answer">Yes. As an MPI Direct Repair shop, bring your claim number and we will guide you through the estimate and parts scheduling. Coverage decisions are made by MPI.</p></div></div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-toggle" aria-expanded="false" aria-controls="faq-home-5">
+            <span>Can I get a repair estimate online?</span>
+            <span class="material-symbols-outlined faq-icon" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="faq-content-wrapper" id="faq-home-5"><div class="faq-inner"><p class="faq-answer">Send photos and damage details through a callback request. For hidden collision damage or complex diagnostic codes, a hands-on inspection is needed to confirm the exact scope.</p></div></div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-toggle" aria-expanded="false" aria-controls="faq-home-6">
+            <span>How long will my repair take?</span>
+            <span class="material-symbols-outlined faq-icon" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="faq-content-wrapper" id="faq-home-6"><div class="faq-inner"><p class="faq-answer">It depends on the work: glass can be same-day, brakes are usually 1–2 hours, and collision repairs often take 2–5 business days. We confirm timing after inspection.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" id="next-step" data-rail-label="Next step">
+  <div class="page-shell">
+    <div class="cta-band">
+      {% include "mapleleaf/partials/cta_art.html" %}
+      <div class="max-w-[34ch]">
+        <p class="stamp text-white/85">Next step</p>
+        <h2 class="h2 text-white mt-2">Tell us what your vehicle needs.</h2>
+        <p class="text-white/75 mt-3 leading-relaxed">Call the shop or leave your number. We will call back during business hours and help you work out the next step.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row lg:flex-col gap-3 w-full sm:w-auto shrink-0">
+        <button type="button" class="btn-on-red h-12 px-5" data-callback-open data-magnetic="4">
+          Request a callback
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+        </button>
+        <a class="h-12 px-5 inline-flex items-center justify-center gap-2 rounded border border-white/35 text-white text-sm font-semibold hover:bg-white/10 transition-colors" href="tel:+12045868253">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+          (204) 586-8253
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

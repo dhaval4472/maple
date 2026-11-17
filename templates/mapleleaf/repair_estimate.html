@@ -1,0 +1,287 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Repair Estimate | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}A planning price range for collision, glass, paint, mechanical and maintenance work at Maple Leaf Auto Body &amp; Glass in Winnipeg. Built from the shop's own prices — not a quote.{% endblock %}
+{% block og_title %}Repair estimate | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block og_description %}Pick a service, describe the vehicle and see the range the shop has set. A planning guide only, not a final quote.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-8 lg:pt-12 lg:pb-10" data-rail-label="Repair estimate">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant flex-wrap" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <a class="hover:text-primary transition-colors" href="{% url 'tools' %}">Tools</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Repair estimate</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Repair estimate</p>
+        <h1 class="display-2 mt-3 max-w-[18ch]">A planning range, set by the shop.</h1>
+        <p class="lede mt-5 max-w-[56ch] text-on-surface-variant">
+          Choose the work and describe the vehicle. You will see a price range built from the numbers the shop owner entered — no market averages, no invented prices. It is close enough to plan with, and never a final quote.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">price_check</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed">
+            <strong class="text-on-surface">Not a quote.</strong>
+            Hidden damage, parts availability and MPI coverage can change the final price. An inspection confirms it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <aside class="lg:col-span-4 space-y-4" data-stagger>
+        <div class="rail-card">
+          <p class="stamp text-primary">How it works</p>
+          <ul class="tool-list mt-3">
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Pick the service you need</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Tell us the vehicle type and, for body work, how bad the damage is</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>See the shop's planning range in Canadian dollars, before tax</li>
+          </ul>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">What it cannot see</p>
+          <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Damage under the panel, part prices on the day and whether MPI will cover the claim. That is why the range always ends with an inspection.</p>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-3" href="{% url 'photo_request' %}">
+            Send photos for a closer look
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">Prefer to ask?</p>
+          <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Call the shop during business hours and a person will talk it through.</p>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-3" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">call</span>
+            (204) 586-8253
+          </a>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8">
+        <div class="tool-panel">
+          {% if messages %}
+          <div class="space-y-2 mb-4" role="status">
+            {% for message in messages %}
+            <div class="form-alert{% if message.tags == 'success' %} is-success{% endif %}">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">info</span>
+              <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if not estimator_enabled %}
+          <div class="tool-panel-head">
+            <div>
+              <p class="stamp text-primary">Estimator</p>
+              <h2 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1">Pricing is being reviewed.</h2>
+            </div>
+            <span class="tool-step-count">Offline</span>
+          </div>
+          <p class="mt-4 text-sm text-on-surface-variant leading-relaxed">The shop is updating its price guide, so the online range is switched off rather than showing a number that may be out of date. Call us for current pricing — it takes a minute.</p>
+          <div class="tool-result-actions">
+            <a class="btn-primary h-11 px-5" href="tel:+12045868253">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+              Call the shop
+            </a>
+            <a class="btn-secondary h-11 px-5" href="{% url 'booking' %}">Request a drop-off</a>
+          </div>
+
+          {% elif not service %}
+          <div class="tool-panel-head">
+            <div>
+              <p class="stamp text-primary">Step 1 of 2</p>
+              <h2 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1">What needs work?</h2>
+            </div>
+            <span class="tool-step-count">{{ priced_count }} priced</span>
+          </div>
+          <p class="tool-help">Services without a price yet show “call for pricing” instead of a guessed number.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            {% for card in tool_cards %}
+              {% if card.available %}
+              <a class="tool-card" href="{% url 'repair_estimate' %}?service={{ card.service.slug }}" data-analytics="cta_click" data-analytics-label="Estimate: {{ card.service.title }}">
+                <span class="tool-card-icon"><span class="material-symbols-outlined" aria-hidden="true">{{ card.service.icon }}</span></span>
+                <span class="tool-card-time">{% if card.from_display %}From {{ card.from_display }}{% else %}Live{% endif %}</span>
+                <span class="tool-card-title">{{ card.service.title }}</span>
+                <span class="tool-card-copy">{{ card.service.summary }}</span>
+                <span class="tool-card-cta">See the range <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span></span>
+              </a>
+              {% else %}
+              <div class="tool-card tool-card-muted" aria-disabled="true">
+                <span class="tool-card-icon"><span class="material-symbols-outlined" aria-hidden="true">{{ card.service.icon }}</span></span>
+                <span class="tool-card-time">Not priced</span>
+                <span class="tool-card-title">{{ card.service.title }}</span>
+                <span class="tool-card-copy">{{ card.service.summary }}</span>
+                <span class="tool-card-cta">Call for pricing <span class="material-symbols-outlined text-[17px]" aria-hidden="true">call</span></span>
+              </div>
+              {% endif %}
+            {% empty %}
+            <p class="text-sm text-on-surface-variant">No services are set up yet. Please call the shop.</p>
+            {% endfor %}
+          </div>
+
+          {% else %}
+          <div class="tool-panel-head">
+            <div>
+              <p class="stamp text-primary">Step 2 of 2</p>
+              <h2 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1">{{ service.title }}</h2>
+            </div>
+            <span class="tool-step-count">{{ service.unit_label }}</span>
+          </div>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-3" href="{% url 'repair_estimate' %}">
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_back</span>
+            Choose a different service
+          </a>
+
+          {% if result %}
+          <div class="tool-result" aria-live="polite">
+            <div class="tool-result-head">
+              <span class="tool-result-icon"><span class="material-symbols-outlined" aria-hidden="true">request_quote</span></span>
+              <div>
+                <p class="stamp text-primary">Planning range · {{ service.title }}</p>
+                <h3 class="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight mt-1">
+                  {{ result.range_display }}
+                  <span class="block text-sm font-semibold text-on-surface-variant mt-1">CAD · {{ result.unit_label }} · before tax</span>
+                </h3>
+              </div>
+            </div>
+
+            <ul class="tool-checklist">
+              {% for factor in result.factors %}
+              <li><strong class="text-on-surface">{{ factor.label }}</strong>&nbsp;{{ factor.detail }}</li>
+              {% endfor %}
+              {% for addon in result.addons %}
+              <li><strong class="text-on-surface">{{ addon.label }}</strong>&nbsp;+{{ addon.amount_display }}</li>
+              {% endfor %}
+              {% if result.updated_on %}
+              <li>Prices last reviewed {{ result.updated_on|date:"F j, Y" }}</li>
+              {% endif %}
+            </ul>
+
+            <div class="tool-result-actions">
+              <button type="button" class="btn-primary h-11 px-5" data-callback-open data-service="{{ service.title }} estimate" data-callback-note="{{ result.callback_note }}">
+                Ask about this estimate
+              </button>
+              <a class="btn-secondary h-11 px-5" href="{% url 'booking' %}">Request a drop-off</a>
+              <a class="text-link inline-flex items-center gap-1.5 text-sm" href="{% url 'repair_estimate' %}">Start over</a>
+            </div>
+
+            <p class="text-[11px] text-on-surface-variant mt-3 leading-relaxed">{{ result.disclaimer }}</p>
+          </div>
+
+          {% elif mpi_route %}
+          <div class="tool-result" aria-live="polite">
+            <div class="tool-result-head">
+              <span class="tool-result-icon"><span class="material-symbols-outlined" aria-hidden="true">verified_user</span></span>
+              <div>
+                <p class="stamp text-primary">Insurance or MPI claim</p>
+                <h3 class="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1">MPI settles the claim, not this estimator.</h3>
+              </div>
+            </div>
+            <p class="text-sm text-on-surface-variant mt-4 leading-relaxed">Because this is an insurance claim, a planning range from the shop would be misleading. The next useful step is the claim navigator, which walks through your paperwork and what to bring.</p>
+            <ul class="tool-checklist">
+              <li>Have your MPI claim number ready if you have one</li>
+              <li>MPI decides coverage; the shop explains the repair side</li>
+              <li>Bring the vehicle registration and your driver's licence</li>
+            </ul>
+            <div class="tool-result-actions">
+              <a class="btn-primary h-11 px-5" href="{% url 'claim_navigator' %}">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">verified_user</span>
+                Open the claim navigator
+              </a>
+              <a class="btn-secondary h-11 px-5" href="tel:+12045868253">Call the shop</a>
+            </div>
+          </div>
+
+          {% else %}
+          <form method="post" class="mt-5" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="service" value="{{ service.slug }}"/>
+            <div class="hidden" aria-hidden="true">
+              <label for="estimate-website">Website</label>
+              <input type="text" id="estimate-website" name="website" tabindex="-1" autocomplete="off"/>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="form-alert mb-4" role="alert">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">error</span>
+              <span>{{ form.non_field_errors.0 }}</span>
+            </div>
+            {% endif %}
+
+            <fieldset class="tool-block">
+              <legend class="tool-question">Your vehicle</legend>
+              <p class="tool-help">A larger or premium vehicle can take more material and time.</p>
+              <div class="tool-chip-grid">
+                {% for radio in form.vehicle_class %}
+                <label class="choice-radio">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+                {% endfor %}
+              </div>
+              {% if form.vehicle_class.errors %}<p class="field-error">{{ form.vehicle_class.errors.0 }}</p>{% endif %}
+            </fieldset>
+
+            {% if form.severity %}
+            <fieldset class="tool-block">
+              <legend class="tool-question">How bad is the damage?</legend>
+              <p class="tool-help">A rough guide only. Hidden damage is confirmed during inspection.</p>
+              <div class="tool-chip-grid">
+                {% for radio in form.severity %}
+                <label class="choice-radio">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+                {% endfor %}
+              </div>
+              {% if form.severity.errors %}<p class="field-error">{{ form.severity.errors.0 }}</p>{% endif %}
+            </fieldset>
+            {% endif %}
+
+            {% if addon_count %}
+            <fieldset class="tool-block">
+              <legend class="tool-question">Extra work to include</legend>
+              <p class="tool-help">Optional. Leave everything unticked for the basic job.</p>
+              <div class="tool-chip-grid">
+                {% for checkbox in form.addons %}
+                <label class="choice-radio">{{ checkbox.tag }}<span>{{ checkbox.choice_label }}</span></label>
+                {% endfor %}
+              </div>
+              {% if form.addons.errors %}<p class="field-error">{{ form.addons.errors.0 }}</p>{% endif %}
+            </fieldset>
+            {% endif %}
+
+            <fieldset class="tool-block">
+              <legend class="tool-question">How is this being paid for?</legend>
+              <div class="tool-chip-grid">
+                {% for radio in form.claim_type %}
+                <label class="choice-radio">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+                {% endfor %}
+              </div>
+              {% if form.claim_type.errors %}<p class="field-error">{{ form.claim_type.errors.0 }}</p>{% endif %}
+            </fieldset>
+
+            <div class="tool-result-actions">
+              <button type="submit" class="btn-primary h-11 px-5">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">calculate</span>
+                Show the range
+              </button>
+              <a class="btn-secondary h-11 px-5" href="{% url 'repair_estimate' %}">Start over</a>
+            </div>
+            <p class="text-[11px] text-on-surface-variant mt-3">{{ estimate_settings.disclaimer }}</p>
+          </form>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

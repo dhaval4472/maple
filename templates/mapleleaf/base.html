@@ -1,0 +1,606 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script>
+    document.documentElement.classList.add('js', 'motion-ready');
+    window.setTimeout(function () {
+      if (document.documentElement.getAttribute('data-js-ready') !== 'true') {
+        document.documentElement.classList.remove('js');
+      }
+      if (document.documentElement.getAttribute('data-motion-ready') !== 'true') {
+        document.documentElement.classList.remove('motion-ready');
+      }
+    }, 1800);
+  </script>
+  <title>{% block title %}Maple Leaf Auto Body & Glass | North End Winnipeg{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Family-owned MPI Direct Repair certified auto body, automotive glass, and mechanical service in North End Winnipeg. Clear answers before the work starts.{% endblock %}"/>
+
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="{% block og_title %}Maple Leaf Auto Body & Glass{% endblock %}"/>
+  <meta property="og:description" content="{% block og_description %}Family-owned auto body, glass and mechanical repair on Dufferin Ave in North End Winnipeg.{% endblock %}"/>
+  <meta property="og:url" content="https://mapleleafauto.ca{{ request.path }}"/>
+  <meta property="og:site_name" content="Maple Leaf Auto Body & Glass"/>
+  <meta name="csrf-token" content="{{ csrf_token }}"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <link rel="icon" type="image/png" href="{% static 'img/package/logo.png' %}"/>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=27"/>
+  {% block extra_css %}{% endblock %}
+  {% block structured_data %}{% endblock %}
+</head>
+<body class="bg-surface font-body text-on-surface antialiased flex flex-col min-h-screen selection:bg-primary selection:text-white">
+
+  <!-- Technical line-art icon set -->
+  <svg class="svg-sprite" aria-hidden="true" focusable="false">
+    <symbol id="ico-collision" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2.8 15.8h1.7l1.1-3.8a2 2 0 0 1 1.9-1.4h7.4a2 2 0 0 1 1.9 1.4l1 3.8h1.6"/>
+        <path d="M6.2 15.8v2.4h2.5v-2.4M15.1 15.8v2.4h2.5v-2.4"/>
+        <path d="M8.2 13.4h6.2"/>
+        <path d="M18.3 4.2l1.4-1.4M20.4 6.9h1.7M17.7 2.2l.4-1.2"/>
+      </g>
+    </symbol>
+    <symbol id="ico-windshield" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.8 4.5h14.4l1.3 13a1.6 1.6 0 0 1-1.6 1.8H5.1a1.6 1.6 0 0 1-1.6-1.8z"/>
+        <path d="M12 8.2l-1.8 3.4 3.3 2-1.6 3.4"/>
+        <path d="M8.1 8l2.3 2.6M15.2 13.8l2.2 2"/>
+      </g>
+    </symbol>
+    <symbol id="ico-paint" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 8.2h5.4v10.6a2.2 2.2 0 0 1-2.2 2.2h-1a2.2 2.2 0 0 1-2.2-2.2z"/>
+        <path d="M10.2 8.2V5.9a1.8 1.8 0 0 1 3.6 0v2.3M9 12.1h5.4"/>
+        <path d="M17.2 5.2l1.9-1.1M18.1 8.4h2.4M17.4 11.6l2.1 1"/>
+      </g>
+    </symbol>
+    <symbol id="ico-mechanical" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.6 6.7a4.6 4.6 0 0 1-6.1 5.5L6 20.7a2.3 2.3 0 1 1-3.3-3.3l8.5-8.5a4.6 4.6 0 0 1 5.5-6.1l-2.9 2.9 3.4 3.4 2.9-2.9z"/>
+      </g>
+    </symbol>
+    <symbol id="ico-diagnostics" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3.2" y="4" width="13" height="9" rx="1.6"/>
+        <path d="M5.4 13v3.1a2 2 0 0 0 2 2h3.4"/>
+        <path d="M5.8 8.6h1.9l1.4-2.2 2 4.4 1.2-2.2h2.2"/>
+        <path d="M19.2 6.8h2M19.2 10.6h2M19.2 14.4h2"/>
+      </g>
+    </symbol>
+    <symbol id="ico-check-engine" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 14.5V9.5h2.8V7h4.4v2.5h2.6l2.1 2.1H20v5.4h-4.1V19H8.2v-2.1H4z"/>
+        <path d="M17.2 2.2v3.4M17.2 7.4v.4"/>
+      </g>
+    </symbol>
+    <symbol id="ico-safety" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l7 2.5v5.2c0 4.4-2.8 7.6-7 9.3-4.2-1.7-7-4.9-7-9.3V5.5z"/>
+        <path d="M8.8 11.8l2.2 2.2 4.2-4.4"/>
+      </g>
+    </symbol>
+    <symbol id="ico-brakes" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="12" r="7.4"/>
+        <circle cx="11" cy="12" r="2.6"/>
+        <path d="M11 4.6v3M11 16.4v3M3.6 12h3M16.4 12h3"/>
+        <path d="M17.8 7.2h3.1v9.6h-3.1M18.6 9.4h1.5v5.2h-1.5"/>
+      </g>
+    </symbol>
+    <symbol id="ico-oil" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3.4c3.1 3.6 5.2 6.3 5.2 9a5.2 5.2 0 0 1-10.4 0c0-2.7 2.1-5.4 5.2-9Z"/>
+        <path d="M9.9 13.1a2.2 2.2 0 0 0 2.1 2.2"/>
+      </g>
+    </symbol>
+    <symbol id="ico-wheels" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="7.2"/>
+        <circle cx="12" cy="12" r="3.6"/>
+        <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/>
+      </g>
+    </symbol>
+    <symbol id="ico-phone" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5.6 3.4h2.9l1.5 3.9-2 1.4a11.4 11.4 0 0 0 5.3 5.3l1.4-2 3.9 1.5v2.9a2.1 2.1 0 0 1-2.1 2.1A15.4 15.4 0 0 1 3.5 5.5a2.1 2.1 0 0 1 2.1-2.1Z"/>
+      </g>
+    </symbol>
+    <symbol id="ico-calendar" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3.5" y="5" width="17" height="15.5" rx="1.8"/>
+        <path d="M3.5 9.5h17M8 3v4M16 3v4"/>
+        <path d="M7.5 13h2M11 13h2M14.5 13h2M7.5 16.5h2M11 16.5h2"/>
+      </g>
+    </symbol>
+    <symbol id="ico-check" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.7 12.6l4.4 4.4L19.3 6.8"/>
+      </g>
+    </symbol>
+    <symbol id="ico-pin" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21s6.5-6 6.5-11a6.5 6.5 0 0 0-13 0C5.5 15 12 21 12 21Z"/>
+        <circle cx="12" cy="10" r="2.4"/>
+      </g>
+    </symbol>
+    <symbol id="ico-chat" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.2 5.4h15.6v10.2H12l-4.6 3.2v-3.2H4.2z"/>
+        <path d="M8.2 9.2h7.6M8.2 12.2h5.2"/>
+      </g>
+    </symbol>
+    <symbol id="ico-clipboard" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 4.4H6.4A1.4 1.4 0 0 0 5 5.8v14.4a1.4 1.4 0 0 0 1.4 1.4h11.2a1.4 1.4 0 0 0 1.4-1.4V5.8a1.4 1.4 0 0 0-1.4-1.4H15"/>
+        <rect x="9" y="2.6" width="6" height="3.6" rx="1.2"/>
+        <path d="M8.8 11.4l1.6 1.6 3-3.2M8.8 16.6l1.6 1.6 3-3.2"/>
+      </g>
+    </symbol>
+  </svg>
+
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
+
+  <!-- Shop rail -->
+  <div class="shop-rail hidden md:block" role="region" aria-label="Shop information">
+    <div class="page-shell shop-rail-inner">
+      <div class="shop-rail-group">
+        <a class="shop-rail-link" href="https://maps.google.com/?q=492+Dufferin+Ave,+Winnipeg,+MB+R2W+2Y6" target="_blank" rel="noopener noreferrer">
+          <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+          <span>492 Dufferin Ave, Winnipeg<span class="hidden xl:inline">, MB R2W 2Y6</span></span>
+        </a>
+        <span class="shop-rail-sep" aria-hidden="true"></span>
+        <span class="shop-rail-status">
+          <span class="status-dot status-dot-sm" aria-hidden="true"></span>
+          <span data-shop-status>Mon–Sat 9:00–6:00</span>
+        </span>
+      </div>
+      <div class="shop-rail-group">
+        <a class="shop-rail-badge" href="{% url 'claim_navigator' %}" aria-label="MPI Direct Repair shop. Open the MPI claim navigator.">
+          <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+          MPI Direct Repair
+        </a>
+        <span class="shop-rail-note">Family-owned &amp; operated</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main header -->
+  <header class="sticky top-0 left-0 right-0 z-40 header-shell" data-header>
+    <div class="page-shell header-row">
+      <a class="brand-lockup" href="{% url 'home' %}" aria-label="Maple Leaf Auto Body & Glass — home">
+        <img alt="" class="brand-logo" src="{% static 'img/package/logo.png' %}"/>
+        <span class="brand-copy">
+          <span class="brand-name">Maple Leaf</span>
+          <span class="brand-sub">Auto Body &amp; Glass</span>
+        </span>
+      </a>
+
+      <nav class="header-nav hidden lg:flex" aria-label="Main">
+        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">Home</a>
+
+        <div class="nav-services" id="nav-services-dropdown" data-dropdown>
+          <button type="button" class="nav-link nav-services-btn {% if request.resolver_match.url_name == 'services' or request.resolver_match.url_name == 'service_detail' %}is-active{% endif %}" id="services-menu-btn" aria-expanded="false" aria-controls="services-mega-menu" data-dropdown-toggle>
+            <span>Services</span>
+            <span class="material-symbols-outlined nav-chevron" id="services-chevron" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="mega-menu" id="services-mega-menu" data-dropdown-panel>
+            <div class="mega-card">
+              <div class="mega-lead">
+                <span class="material-symbols-outlined mega-lead-icon" aria-hidden="true">build_circle</span>
+                <p class="mega-lead-title">One shop, start to finish.</p>
+                <p class="mega-lead-text">Collision, glass, mechanical and the maintenance in between — all handled under one roof.</p>
+                <a class="mega-all" href="{% url 'services' %}">Browse all services</a>
+              </div>
+              <div class="mega-groups">
+                <div class="mega-group">
+                  <div class="mega-group-head">
+                    <span class="material-symbols-outlined" aria-hidden="true">car_crash</span>
+                    <span>Body &amp; glass</span>
+                  </div>
+                  <a class="mega-link" href="{% url 'service_detail' 'collision' %}">Collision repair</a>
+                  <a class="mega-link" href="{% url 'service_detail' 'windshield' %}">Windshield repair</a>
+                  <a class="mega-link" href="{% url 'service_detail' 'paint' %}">Dent repair &amp; painting</a>
+                </div>
+                <div class="mega-group">
+                  <div class="mega-group-head">
+                    <span class="material-symbols-outlined" aria-hidden="true">manufacturing</span>
+                    <span>Mechanical</span>
+                  </div>
+                  <a class="mega-link" href="{% url 'service_detail' 'mechanical' %}">Mechanical repair</a>
+                  <a class="mega-link" href="{% url 'service_detail' 'diagnostics' %}">Computerized diagnostics</a>
+                  <a class="mega-link" href="{% url 'service_detail' 'check-engine' %}">Check-engine diagnostics</a>
+                </div>
+                <div class="mega-group">
+                  <div class="mega-group-head">
+                    <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+                    <span>Maintenance</span>
+                  </div>
+                  <a class="mega-link" href="{% url 'service_detail' 'safety' %}">Safety inspection</a>
+                  <a class="mega-link" href="{% url 'service_detail' 'brakes' %}">Brake service</a>
+                  <a class="mega-link" href="{% url 'service_detail' 'oil' %}">Oil changes</a>
+                  <a class="mega-link" href="{% url 'service_detail' 'wheels' %}">Wheel balancing</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <a class="nav-link {% if request.resolver_match.url_name == 'about' %}is-active{% endif %}" href="{% url 'about' %}">About</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'tools' or request.resolver_match.url_name == 'repair_estimate' or request.resolver_match.url_name == 'claim_navigator' or request.resolver_match.url_name == 'chip_checker' or request.resolver_match.url_name == 'repair_or_replace' %}is-active{% endif %}" href="{% url 'tools' %}">Tools</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'booking' %}is-active{% endif %}" href="{% url 'booking' %}">Book</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}" href="{% url 'contact' %}">Contact</a>
+        {% if account_home_name %}
+        <a class="nav-login" href="{% url account_home_name %}">
+          <span class="material-symbols-outlined" aria-hidden="true">account_circle</span>
+          <span>{{ account_label }}</span>
+        </a>
+        {% else %}
+        <a class="nav-login" href="{% url 'login' %}">
+          <span class="material-symbols-outlined" aria-hidden="true">login</span>
+          <span>Login</span>
+        </a>
+        {% endif %}
+      </nav>
+
+      <div class="header-actions">
+        <a class="header-phone hidden md:flex" href="tel:+12045868253">
+          <span class="header-phone-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">call</span>
+          </span>
+          <span class="header-phone-copy">
+            <span class="header-phone-label">Call the shop</span>
+            <span class="header-phone-number">(204) 586-8253</span>
+          </span>
+        </a>
+        <a class="icon-btn header-call-icon header-phone-compact" href="tel:+12045868253" aria-label="Call Maple Leaf at (204) 586-8253">
+          <span class="material-symbols-outlined" aria-hidden="true">call</span>
+        </a>
+        <button type="button" class="header-cta hidden sm:inline-flex" data-callback-open data-magnetic="4">
+          Request a callback
+        </button>
+        <a class="icon-btn header-call-icon sm:hidden" href="tel:+12045868253" aria-label="Call Maple Leaf at (204) 586-8253">
+          <span class="material-symbols-outlined" aria-hidden="true">call</span>
+        </a>
+        <button type="button" class="menu-toggle lg:hidden" data-mobile-open aria-expanded="false" aria-controls="mobile-menu" aria-label="Open navigation menu">
+          <span class="menu-toggle-label">Menu</span>
+          <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile MPI trust strip -->
+  <a class="mpi-mobile-strip md:hidden" href="{% url 'claim_navigator' %}" aria-label="MPI Direct Repair shop. Have an MPI claim number? Open the MPI claim navigator.">
+    <span class="mpi-mobile-strip-inner page-shell">
+      <span class="mpi-mobile-strip-badge">
+        <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+        MPI Direct Repair
+      </span>
+      <span class="mpi-mobile-strip-action">
+        <span class="mpi-mobile-strip-action-long">Claim number? Start here</span>
+        <span class="mpi-mobile-strip-action-short">Claim help</span>
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+      </span>
+    </span>
+  </a>
+
+  <!-- Mobile navigation -->
+  <div class="mobile-menu-layer lg:hidden" id="mobile-menu-layer" aria-hidden="true" data-mobile-layer>
+    <button type="button" class="mobile-menu-backdrop" aria-label="Close navigation menu" data-mobile-close tabindex="-1"></button>
+    <aside class="mobile-drawer" id="mobile-menu" aria-label="Mobile navigation" data-mobile-panel>
+      <div class="mobile-drawer-head">
+        <a class="brand-lockup brand-lockup-dark" href="{% url 'home' %}" aria-label="Maple Leaf Auto Body & Glass — home">
+          <img alt="" class="brand-logo" src="{% static 'img/package/logo.png' %}"/>
+          <span class="brand-copy">
+            <span class="brand-name">Maple Leaf</span>
+            <span class="brand-sub">Auto Body &amp; Glass</span>
+          </span>
+        </a>
+        <button type="button" class="icon-btn mobile-close" data-mobile-close aria-label="Close navigation menu">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+      <div class="mobile-drawer-mpi">
+        <p class="mobile-drawer-mpi-kicker">
+          <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+          MPI Direct Repair
+        </p>
+        <p class="mobile-drawer-mpi-title">Have an MPI claim number?</p>
+        <p class="mobile-drawer-mpi-copy">We can walk through the repair side, from estimate to parts. Coverage decisions stay with MPI.</p>
+        <div class="mobile-drawer-mpi-actions">
+          <a class="btn-primary h-11 w-full" href="{% url 'claim_navigator' %}">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">route</span>
+            Open the claim navigator
+          </a>
+          <button type="button" class="btn-secondary h-11 w-full" data-callback-open data-service="MPI claim question">Ask about your claim</button>
+        </div>
+      </div>
+      <nav class="mobile-drawer-nav" aria-label="Mobile main">
+        <a class="mobile-nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}"><span>Home</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        <a class="mobile-nav-link {% if request.resolver_match.url_name == 'services' or request.resolver_match.url_name == 'service_detail' %}is-active{% endif %}" href="{% url 'services' %}"><span>Services</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        <div class="mobile-service-list">
+          <p class="stamp text-on-surface-variant mb-2">Popular services</p>
+          <div class="flex flex-wrap gap-2">
+            <a class="chip-link" href="{% url 'service_detail' 'windshield' %}">Windshield</a>
+            <a class="chip-link" href="{% url 'service_detail' 'collision' %}">Collision</a>
+            <a class="chip-link" href="{% url 'service_detail' 'diagnostics' %}">Diagnostics</a>
+            <a class="chip-link" href="{% url 'service_detail' 'brakes' %}">Brakes</a>
+            <a class="chip-link" href="{% url 'repair_estimate' %}">Estimate</a>
+            <a class="chip-link" href="{% url 'claim_navigator' %}">MPI navigator</a>
+          </div>
+        </div>
+        <a class="mobile-nav-link {% if request.resolver_match.url_name == 'about' %}is-active{% endif %}" href="{% url 'about' %}"><span>About</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        <a class="mobile-nav-link {% if request.resolver_match.url_name == 'tools' or request.resolver_match.url_name == 'repair_estimate' or request.resolver_match.url_name == 'claim_navigator' or request.resolver_match.url_name == 'chip_checker' or request.resolver_match.url_name == 'repair_or_replace' %}is-active{% endif %}" href="{% url 'tools' %}"><span>Tools</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        <a class="mobile-nav-link {% if request.resolver_match.url_name == 'booking' %}is-active{% endif %}" href="{% url 'booking' %}"><span>Book a drop-off</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        <a class="mobile-nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}" href="{% url 'contact' %}"><span>Contact</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        {% if account_home_name %}
+        <a class="mobile-nav-link" href="{% url account_home_name %}"><span>{{ account_label }}</span><span class="material-symbols-outlined" aria-hidden="true">account_circle</span></a>
+        {% else %}
+        <a class="mobile-nav-link" href="{% url 'login' %}"><span>Login</span><span class="material-symbols-outlined" aria-hidden="true">login</span></a>
+        {% endif %}
+      </nav>
+      <div class="mobile-drawer-foot">
+        <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-shop-status>Checking hours…</span>
+        </div>
+        <a class="btn-primary w-full" href="tel:+12045868253">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+          Call (204) 586-8253
+        </a>
+        <button type="button" class="btn-secondary w-full" data-callback-open>Request a callback</button>
+      </div>
+    </aside>
+  </div>
+
+  <main id="main-content" class="w-full flex-grow">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Section index (desktop) -->
+  <nav class="section-rail" data-section-rail aria-label="Page sections"></nav>
+
+  <!-- Scroll instrument -->
+  <button type="button" class="scroll-top-fab" data-scroll-top aria-label="Back to top">
+    <svg class="scroll-top-ring" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
+      <circle class="scroll-top-ring-track" cx="22" cy="22" r="19"/>
+      <circle class="scroll-top-ring-fill" cx="22" cy="22" r="19" pathLength="100" data-scroll-top-ring/>
+    </svg>
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+  </button>
+
+  <!-- Footer -->
+  <footer class="w-full bg-surface-container-low border-t border-surface-container pt-14 pb-24 md:pb-10">
+    <div class="page-shell">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-10">
+        <div class="lg:col-span-5 flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <img alt="" class="w-11 h-11 object-contain" src="{% static 'img/package/logo.png' %}"/>
+            <div class="leading-tight">
+              <div class="font-headline font-extrabold text-lg tracking-tight">Maple Leaf</div>
+              <div class="text-[10px] text-primary tracking-[0.14em] uppercase font-bold">Auto Body &amp; Glass</div>
+            </div>
+          </div>
+          <p class="text-sm text-on-surface-variant max-w-sm leading-relaxed">
+            Family-owned auto body, glass and mechanical repair in North End Winnipeg. Cars, SUVs and pickups — with plain answers before the work starts.
+          </p>
+          <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span data-shop-status>Mon–Sat 9:00–6:00</span>
+          </div>
+          <a class="inline-flex items-center gap-2 text-xs font-semibold text-secondary bg-secondary/5 border border-secondary/15 rounded px-2.5 py-1.5 w-fit transition-colors hover:text-primary hover:border-primary/30" href="{% url 'claim_navigator' %}">
+            <span class="material-symbols-outlined text-[15px]" aria-hidden="true">verified</span>
+            MPI Direct Repair
+          </a>
+        </div>
+
+        <div class="lg:col-span-2 flex flex-col gap-2.5">
+          <div class="stamp text-on-surface-variant">Explore</div>
+          <a class="footer-link" href="{% url 'home' %}">Home</a>
+          <a class="footer-link" href="{% url 'services' %}">All services</a>
+          <a class="footer-link" href="{% url 'tools' %}">Repair tools</a>
+          <a class="footer-link" href="{% url 'booking' %}">Book a drop-off</a>
+          <a class="footer-link" href="{% url 'about' %}">About us</a>
+          <a class="footer-link" href="{% url 'contact' %}">Contact</a>
+        </div>
+
+        <div class="lg:col-span-2 flex flex-col gap-2.5">
+          <div class="stamp text-on-surface-variant">Popular</div>
+          <a class="footer-link" href="{% url 'service_detail' 'windshield' %}">Windshield</a>
+          <a class="footer-link" href="{% url 'service_detail' 'collision' %}">Collision repair</a>
+          <a class="footer-link" href="{% url 'claim_navigator' %}">MPI claim navigator</a>
+          <a class="footer-link" href="{% url 'photo_request' %}">Photo estimate</a>
+          <a class="footer-link" href="{% url 'repair_stories' %}">Before &amp; after</a>
+        </div>
+
+        <div class="lg:col-span-3 flex flex-col gap-2.5">
+          <div class="stamp text-on-surface-variant">Shop</div>
+          <a class="footer-link inline-flex items-start gap-2" href="https://maps.google.com/?q=492+Dufferin+Ave,+Winnipeg,+MB+R2W+2Y6" target="_blank" rel="noopener noreferrer">
+            <span class="material-symbols-outlined text-[16px] text-primary mt-0.5" aria-hidden="true">location_on</span>
+            <span>492 Dufferin Ave<br/>Winnipeg, MB R2W 2Y6</span>
+          </a>
+          <a class="footer-link inline-flex items-center gap-2" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[16px] text-primary" aria-hidden="true">call</span>
+            (204) 586-8253
+          </a>
+          <a class="footer-link inline-flex items-center gap-2" href="mailto:mapleleafautorepairs@gmail.com">
+            <span class="material-symbols-outlined text-[16px] text-primary" aria-hidden="true">mail</span>
+            mapleleafautorepairs@gmail.com
+          </a>
+          <span class="text-xs text-on-surface-variant mt-1">Mon–Sat 9:00 AM–6:00 PM<br/>Sunday closed</span>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-surface-container flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-on-surface-variant">
+        <div>© {% now "Y" %} Maple Leaf Auto Body &amp; Glass. All rights reserved.</div>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span>Winnipeg, Manitoba</span>
+          <a class="hover:text-primary transition-colors" href="{% url 'privacy' %}">Privacy</a>
+          {% if account_home_name %}
+          <a class="hover:text-primary transition-colors" href="{% url account_home_name %}">{{ account_label }}</a>
+          {% else %}
+          <a class="hover:text-primary transition-colors" href="{% url 'login' %}">Login</a>
+          {% endif %}
+          <button type="button" class="inline-flex items-center gap-1 hover:text-primary transition-colors" data-back-to-top>
+            Back to top
+            <span class="material-symbols-outlined text-[15px]" aria-hidden="true">arrow_upward</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile action bar -->
+  <aside class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md px-4 py-2.5 shadow-[0_-8px_24px_rgba(26,28,27,0.08)] border-t border-surface-container safe-bottom">
+    <div class="grid grid-cols-2 gap-3">
+      <a class="h-11 rounded bg-surface-container text-on-surface text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform" href="tel:+12045868253">
+        <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">call</span>
+        <span>Call shop</span>
+      </a>
+      <button type="button" class="h-11 rounded bg-primary text-white text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform" data-callback-open>
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">schedule</span>
+        <span>Callback</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Global callback modal -->
+  <div id="callback-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="callback-modal-title" aria-hidden="true" data-callback-modal>
+    <div class="modal-backdrop" data-callback-close></div>
+    <div class="modal-panel max-w-lg" role="document">
+      <div class="flex items-start justify-between gap-4 p-5 sm:p-6 border-b border-surface-container">
+        <div>
+          <p class="stamp text-primary">Callback request</p>
+          <h2 id="callback-modal-title" class="font-headline text-2xl font-extrabold tracking-tight mt-1">Tell us what you need.</h2>
+          <p class="text-sm text-on-surface-variant mt-1">We call back during shop hours. No phone tree.</p>
+        </div>
+        <button type="button" class="icon-btn shrink-0" data-callback-close aria-label="Close callback request">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+
+      <form class="p-5 sm:p-6" data-callback-form method="post" action="{% url 'contact' %}" novalidate>
+        {% csrf_token %}
+        <div class="hidden" aria-hidden="true">
+          <label for="callback-website">Website</label>
+          <input type="text" id="callback-website" name="website" tabindex="-1" autocomplete="off"/>
+        </div>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label" for="callback-name">Your name <span class="text-primary">*</span></label>
+              <input class="field" id="callback-name" name="full_name" type="text" autocomplete="name" required placeholder="First and last name"/>
+              <p class="field-error" data-error-for="full_name" hidden></p>
+            </div>
+            <div>
+              <label class="field-label" for="callback-phone">Phone <span class="text-primary">*</span></label>
+              <input class="field" id="callback-phone" name="phone_number" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(204) 000-0000"/>
+              <p class="field-error" data-error-for="phone_number" hidden></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label" for="callback-service">Service or issue</label>
+              <input class="field" id="callback-service" name="service_needed" type="text" list="callback-service-options" placeholder="e.g. Windshield chip"/>
+              <datalist id="callback-service-options">
+                <option value="Collision estimate"></option>
+                <option value="Windshield repair or replacement"></option>
+                <option value="Dent repair and painting"></option>
+                <option value="Mechanical repair"></option>
+                <option value="Computerized diagnostics"></option>
+                <option value="Safety inspection"></option>
+                <option value="Brake service"></option>
+                <option value="Oil change"></option>
+                <option value="MPI claim question"></option>
+              </datalist>
+            </div>
+            <div>
+              <label class="field-label" for="callback-time">Best time to call</label>
+              <select class="field" id="callback-time" name="preferred_time">
+                <option>Anytime today</option>
+                <option>9:00–11:00 AM</option>
+                <option>11:00 AM–1:00 PM</option>
+                <option>1:00–3:00 PM</option>
+                <option>3:00–5:00 PM</option>
+                <option>Any weekday</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="field-label" for="callback-notes">Vehicle details &amp; notes</label>
+            <textarea class="field resize-none" id="callback-notes" name="vehicle_description" rows="3" maxlength="1200" placeholder="Year, make, model, MPI claim number, or anything helpful."></textarea>
+          </div>
+
+          <p class="form-alert" data-callback-error hidden></p>
+
+          <button type="submit" class="btn-primary w-full h-12" data-submit>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
+            <span data-submit-label>Send callback request</span>
+            <span class="spinner" data-spinner hidden aria-hidden="true"></span>
+          </button>
+          <p class="text-[12px] text-on-surface-variant text-center leading-relaxed">
+            Prefer the phone? <a class="text-primary font-semibold hover:underline" href="tel:+12045868253">(204) 586-8253</a>. We use your details only to reply to this request.
+          </p>
+        </div>
+      </form>
+
+      <div class="p-6 sm:p-8 text-center" data-callback-success hidden>
+        <span class="success-mark" aria-hidden="true"><span class="material-symbols-outlined text-[30px]">check</span></span>
+        <h3 class="font-headline text-2xl font-extrabold tracking-tight mt-4">Request received.</h3>
+        <p class="text-sm text-on-surface-variant mt-2 max-w-sm mx-auto" data-callback-success-message>We will call you back during shop hours.</p>
+        <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+          <button type="button" class="btn-primary h-11 px-5" data-callback-close>Close</button>
+          <a class="btn-secondary h-11 px-5" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>
+            Call now
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global lightbox -->
+  <div id="lightbox-modal" class="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightbox-caption" aria-hidden="true" data-lightbox-modal>
+    <div class="lightbox-backdrop" data-lightbox-close></div>
+    <div class="lightbox-panel" role="document">
+      <div class="flex items-center justify-between gap-4 px-4 sm:px-6 py-3 border-b border-white/10">
+        <div class="min-w-0">
+          <h2 id="lightbox-caption" class="font-headline font-bold text-white truncate" data-lightbox-caption>Workshop photo</h2>
+          <p class="text-xs text-white/60 mt-0.5 truncate" data-lightbox-sub></p>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs text-white/50 tabular-nums mr-1" data-lightbox-counter>1 / 4</span>
+          <button type="button" class="icon-btn-dark" data-lightbox-close aria-label="Close photo">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+      </div>
+      <div class="lightbox-stage">
+        <img alt="" class="lightbox-image" data-lightbox-image src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
+        <button type="button" class="lightbox-nav prev" data-lightbox-prev aria-label="Previous photo">
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+        </button>
+        <button type="button" class="lightbox-nav next" data-lightbox-next aria-label="Next photo">
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="{% static 'js/app.js' %}?v=17" defer></script>
+  <script src="{% static 'js/motion.js' %}?v=15" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

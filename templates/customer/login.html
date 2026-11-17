@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Customer sign in · Maple Leaf Auto Body &amp; Glass</title>
+  <link rel="icon" type="image/png" href="{% static 'img/package/logo.png' %}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=27"/>
+</head>
+<body class="staff-login-body">
+  <main class="staff-login-shell">
+    <section class="staff-login-story" aria-label="Maple Leaf customer account">
+      <div class="staff-login-story-inner">
+        <a class="staff-login-brand" href="{% url 'home' %}">
+          <img alt="" src="{% static 'img/package/logo.png' %}"/>
+          <span>
+            <strong>Maple Leaf</strong>
+            <small>Auto Body &amp; Glass</small>
+          </span>
+        </a>
+
+        <div class="staff-login-copy">
+          <p class="stamp text-white/55">Customer account</p>
+          <h1>Your repair, in one clear place.</h1>
+          <p>See the requests you have sent to the shop, the latest status, and what happens next. No phone tree, no guessing.</p>
+
+          <ul class="staff-login-points">
+            <li><span class="material-symbols-outlined" aria-hidden="true">inbox</span><span><strong>One history.</strong> Bookings, callbacks, MPI questions and photo requests together.</span></li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">task_alt</span><span><strong>Plain status.</strong> See whether the shop has reviewed, booked or completed your request.</span></li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">lock</span><span><strong>Private by default.</strong> You only see requests linked to your account.</span></li>
+          </ul>
+        </div>
+
+        <div class="staff-login-foot">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>492 Dufferin Ave · Winnipeg · (204) 586-8253</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="staff-login-panel">
+      <div class="staff-login-card">
+        <a class="staff-login-back" href="{% url 'home' %}">
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          Back to public website
+        </a>
+
+        <p class="stamp text-primary mt-8">Customer sign in</p>
+        <h2>Welcome back.</h2>
+        <p class="staff-login-help">Use the customer account the shop created for you. There is no public sign-up.</p>
+
+        {% if messages %}
+        <div class="staff-login-messages" aria-live="polite">
+          {% for message in messages %}
+          <div class="staff-login-error staff-login-flash-{{ message.tags|default:'info' }}" role="status">
+            <span class="material-symbols-outlined" aria-hidden="true">{% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}</span>
+            <div><p>{{ message }}</p></div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="staff-login-error" role="alert">
+          <span class="material-symbols-outlined" aria-hidden="true">error</span>
+          <div>
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <form method="post" class="staff-login-form" novalidate>
+          {% csrf_token %}
+          {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+
+          <div>
+            <label class="field-label" for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}<p class="field-error">{{ form.username.errors.0 }}</p>{% endif %}
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between gap-3">
+              <label class="field-label" for="{{ form.password.id_for_label }}">Password</label>
+              <button type="button" class="staff-password-toggle" data-password-toggle="#{{ form.password.id_for_label }}">Show</button>
+            </div>
+            {{ form.password }}
+            {% if form.password.errors %}<p class="field-error">{{ form.password.errors.0 }}</p>{% endif %}
+          </div>
+
+          <button type="submit" class="btn-primary h-12 w-full">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">login</span>
+            Sign in to my account
+          </button>
+        </form>
+
+        <div class="staff-login-note">
+          <span class="material-symbols-outlined" aria-hidden="true">support_agent</span>
+          <p>Need an account or forgot your password? Call the shop at <a href="tel:+12045868253">(204) 586-8253</a>. Shop staff can use the same sign-in page.</p>
+        </div>
+
+        <a class="staff-login-back mt-5" href="{% url 'login' %}">
+          <span class="material-symbols-outlined" aria-hidden="true">login</span>
+          Use the general sign-in page
+        </a>
+      </div>
+
+      <p class="staff-login-copyright">© {% now "Y" %} Maple Leaf Auto Body &amp; Glass · Winnipeg, Manitoba</p>
+    </section>
+  </main>
+
+  <script src="{% static 'js/staff.js' %}?v=2" defer></script>
+</body>
+</html>

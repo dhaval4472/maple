@@ -1,0 +1,192 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% if part %}{% url 'staff_part_detail' part.pk %}{% else %}{% url 'staff_parts' %}{% endif %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {% if part %}{{ part.sku }}{% else %}parts{% endif %}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">{% if is_new %}New shelf item{% else %}Part record{% endif %}</p>
+    <h2 class="staff-page-title">{% if is_new %}Add a part{% else %}Edit {{ part.sku }}{% endif %}</h2>
+    <p class="staff-page-lede">{% if is_new %}Start with a shop SKU and a clear name. Stock is added separately with Receive stock or Count stock, so the ledger starts with a real movement.{% else %}Changing these details does not change the quantity on hand. Use Receive, Use, Count or Adjust for stock.{% endif %}</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">Part details</p>
+        <h3 class="staff-card-title">What it is and where it lives</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">inventory_2</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.sku.id_for_label }}">Shop SKU</label>
+          {{ form.sku }}
+          {% if form.sku.errors %}<p class="field-error">{{ form.sku.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.sku.help_text }}</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.name.id_for_label }}">Part name</label>
+          {{ form.name }}
+          {% if form.name.errors %}<p class="field-error">{{ form.name.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.category.id_for_label }}">Category</label>
+          {{ form.category }}
+          {% if form.category.errors %}<p class="field-error">{{ form.category.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.unit.id_for_label }}">Unit</label>
+          {{ form.unit }}
+          {% if form.unit.errors %}<p class="field-error">{{ form.unit.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Paint and fluids are usually tracked by the container you actually buy, such as a quart.</p>
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.bin_location.id_for_label }}">Bin location</label>
+          {{ form.bin_location }}
+          {% if form.bin_location.errors %}<p class="field-error">{{ form.bin_location.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.bin_location.help_text }}</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.brand.id_for_label }}">Brand</label>
+          {{ form.brand }}
+          {% if form.brand.errors %}<p class="field-error">{{ form.brand.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.part_number.id_for_label }}">Part number</label>
+          {{ form.part_number }}
+          {% if form.part_number.errors %}<p class="field-error">{{ form.part_number.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.barcode.id_for_label }}">Barcode</label>
+          {{ form.barcode }}
+          {% if form.barcode.errors %}<p class="field-error">{{ form.barcode.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">A USB scanner types into this field, just like a keyboard.</p>
+        </div>
+      </div>
+
+      <div class="staff-card-section">
+        <div class="staff-card-head staff-card-head-inline">
+          <div>
+            <p class="staff-card-kicker">Buying</p>
+            <h3 class="staff-card-title">Supplier and cost</h3>
+          </div>
+        </div>
+
+        <div class="staff-form-grid">
+          <div>
+            <label class="field-label" for="{{ form.supplier.id_for_label }}">Supplier</label>
+            {{ form.supplier }}
+            {% if form.supplier.errors %}<p class="field-error">{{ form.supplier.errors.0 }}</p>{% endif %}
+            <p class="staff-field-help">Leave blank for a part you buy locally. <a class="staff-text-link" href="{% url 'staff_supplier_create' %}">Add a supplier</a> first if it is missing.</p>
+          </div>
+          <div>
+            <label class="field-label" for="{{ form.cost_price.id_for_label }}">Unit cost</label>
+            {{ form.cost_price }}
+            {% if form.cost_price.errors %}<p class="field-error">{{ form.cost_price.errors.0 }}</p>{% endif %}
+            <p class="staff-field-help">{{ form.cost_price.help_text }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="staff-card-section">
+        <div class="staff-card-head staff-card-head-inline">
+          <div>
+            <p class="staff-card-kicker">Reorder rules</p>
+            <h3 class="staff-card-title">When to restock</h3>
+          </div>
+        </div>
+
+        <div class="staff-form-grid">
+          <div>
+            <label class="field-label" for="{{ form.reorder_level.id_for_label }}">Reorder when at or below</label>
+            {{ form.reorder_level }}
+            {% if form.reorder_level.errors %}<p class="field-error">{{ form.reorder_level.errors.0 }}</p>{% endif %}
+            <p class="staff-field-help">{{ form.reorder_level.help_text }}</p>
+          </div>
+          <div>
+            <label class="field-label" for="{{ form.reorder_target.id_for_label }}">Restock up to</label>
+            {{ form.reorder_target }}
+            {% if form.reorder_target.errors %}<p class="field-error">{{ form.reorder_target.errors.0 }}</p>{% endif %}
+            <p class="staff-field-help">{{ form.reorder_target.help_text }}</p>
+          </div>
+        </div>
+
+        <label class="staff-check-row" for="{{ form.is_critical.id_for_label }}">
+          {{ form.is_critical }}
+          <span>
+            <strong>Critical part</strong>
+            <small>{{ form.is_critical.help_text }}</small>
+          </span>
+        </label>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.notes.id_for_label }}">Notes</label>
+        {{ form.notes }}
+        {% if form.notes.errors %}<p class="field-error">{{ form.notes.errors.0 }}</p>{% endif %}
+      </div>
+
+      <label class="staff-check-row" for="{{ form.is_active.id_for_label }}">
+        {{ form.is_active }}
+        <span>
+          <strong>Keep this part active</strong>
+          <small>Untick to archive it. History and past job costs stay.</small>
+        </span>
+      </label>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
+          {% if is_new %}Add part{% else %}Save changes{% endif %}
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% if part %}{% url 'staff_part_detail' part.pk %}{% else %}{% url 'staff_parts' %}{% endif %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Simple by design</p>
+          <h3 class="staff-card-title">How stock stays honest</h3>
+        </div>
+      </div>
+      <ul class="staff-list-checks">
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> The quantity on hand is only changed by a stock movement.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Receiving a delivery raises the balance and can update the cost.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> Using a part lowers it and can be linked to a work ticket.</li>
+        <li><span class="material-symbols-outlined" aria-hidden="true">check</span> A count or adjustment always records who did it and why.</li>
+      </ul>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+        Cost and stock value are only visible to shop owners. Employees can search, see quantities and record parts on their own jobs.
+      </p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

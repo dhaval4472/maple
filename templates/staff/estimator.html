@@ -1,0 +1,102 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-secondary" href="{% url 'staff_estimate_settings' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+  <span class="hidden sm:inline">Settings</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Pricing</p>
+    <h2 class="staff-page-title">Repair estimator</h2>
+    <p class="staff-page-lede">These are the only prices the public estimator can show. A service stays “call for pricing” until you enter a base price and switch it on.</p>
+  </div>
+  <div class="staff-page-actions">
+    <span class="staff-count-chip">{{ priced_count }} priced</span>
+    <span class="staff-count-chip">{{ addon_total }} add-ons</span>
+  </div>
+</div>
+
+{% if not estimate_settings.site_enabled %}
+<div class="staff-banner staff-banner-warning">
+  <span class="material-symbols-outlined" aria-hidden="true">power_settings_new</span>
+  <div>
+    <strong>The public estimator is switched off.</strong>
+    <p>The page still loads but shows “call for pricing” instead of a range. Enter your prices first, then turn it on in <a class="staff-text-link" href="{% url 'staff_estimate_settings' %}">Settings</a>.</p>
+  </div>
+</div>
+{% else %}
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+  <div>
+    <strong>No hidden averaging.</strong>
+    <p>The public range is your base price ± the spread, adjusted by the vehicle and severity multipliers. Nothing is pulled from a market database or invented by the site.</p>
+  </div>
+</div>
+{% endif %}
+
+{% if services %}
+<div class="staff-table-wrap">
+  <table class="staff-table">
+    <thead>
+      <tr>
+        <th scope="col">Service</th>
+        <th scope="col">Website</th>
+        <th scope="col">Typical range</th>
+        <th scope="col">Basis</th>
+        <th scope="col">Add-ons</th>
+        <th scope="col">Updated</th>
+        <th scope="col"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service in services %}
+      <tr>
+        <td>
+          <span class="staff-table-name">{{ service.title }}</span>
+          <span class="staff-table-detail">{% if service.uses_severity %}Asks about severity{% else %}Fixed scope{% endif %}</span>
+        </td>
+        <td>
+          {% if not estimate_settings.site_enabled %}
+          <span class="staff-status is-muted">Site off</span>
+          {% elif service.is_priced %}
+          <span class="staff-status is-good">Live</span>
+          {% elif service.enabled %}
+          <span class="staff-status is-bad">Needs price</span>
+          {% else %}
+          <span class="staff-status is-muted">Off</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="staff-table-ref">{{ service.range_display }}</span>
+          {% if service.base_price %}<span class="staff-table-detail">Base ${{ service.base_price|floatformat:0 }} · ±{{ service.spread_percent|floatformat:0 }}%</span>{% endif %}
+        </td>
+        <td>{{ service.unit_label }}</td>
+        <td>
+          <a class="staff-text-link" href="{% url 'staff_estimate_addons' service.slug %}">{{ service.addon_count }}</a>
+        </td>
+        <td><span class="staff-table-date">{{ service.updated_at|date:"M j, Y" }}</span></td>
+        <td>
+          <a class="staff-btn staff-btn-secondary" href="{% url 'staff_estimate_edit' service.slug %}">
+            <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+            Edit
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="staff-card">
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">request_quote</span>
+    <h3>No services are set up yet.</h3>
+    <p>Run the migration that seeds the ten public services, then set a price for each one.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

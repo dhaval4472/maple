@@ -1,0 +1,193 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Send Damage Photos | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}Send up to four damage photos to Maple Leaf Auto Body &amp; Glass in Winnipeg. We use them to prepare for the conversation, not to promise a final repair price.{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12 lg:pb-12" data-rail-label="Photo request">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <a class="hover:text-primary transition-colors" href="{% url 'tools' %}">Tools</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Photo request</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mt-6">
+      <div class="lg:col-span-8">
+        <p class="stamp text-primary">Guided photo request</p>
+        <h1 class="display-2 mt-3 max-w-[16ch]">Show us what you are seeing.</h1>
+        <p class="lede mt-5 max-w-[54ch] text-on-surface-variant">
+          Add a few photos and a short description. We use them to prepare for the conversation and spot what else may need a closer look. Photos do not replace an in-person inspection.
+        </p>
+      </div>
+      <div class="lg:col-span-4">
+        <div class="tool-note">
+          <span class="material-symbols-outlined text-primary" aria-hidden="true">photo_camera</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed"><strong class="text-on-surface">A useful photo set:</strong> one wide shot of the vehicle, one close-up of the damage, and one from a different angle. Include the licence plate only if you are comfortable doing so.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <aside class="lg:col-span-4 space-y-4" data-stagger>
+        <div class="rail-card">
+          <p class="stamp text-primary">Before you upload</p>
+          <ul class="tool-list mt-3">
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>Up to {{ photo_limit }} photos, {{ photo_max_mb }} MB each</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>JPEG, PNG or WebP</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>No licence plate or VIN if you would rather not share it</li>
+            <li><span class="material-symbols-outlined" aria-hidden="true">check</span>We keep photos for {{ retention_days }} days by default</li>
+          </ul>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">What happens next</p>
+          <ol class="tool-numbered mt-3">
+            <li><span>01</span><div><strong>The shop reviews the photos.</strong><p>We look for what is visible and what may need an in-person check.</p></div></li>
+            <li><span>02</span><div><strong>We call you.</strong><p>We ask questions, explain the next step and confirm whether an inspection is needed.</p></div></li>
+            <li><span>03</span><div><strong>You decide.</strong><p>No work starts without your approval.</p></div></li>
+          </ol>
+        </div>
+        <div class="rail-card">
+          <p class="stamp text-primary">Privacy</p>
+          <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Photos are used to assess your request. They are not published without separate written permission.</p>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm mt-3" href="{% url 'privacy' %}">Read the photo policy <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span></a>
+        </div>
+      </aside>
+
+      <div class="lg:col-span-8">
+        <div class="form-card">
+          {% if success %}
+          <div class="tool-success p-6 sm:p-10" role="status">
+            <span class="success-mark" aria-hidden="true"><span class="material-symbols-outlined text-[30px]">check</span></span>
+            <p class="stamp text-primary mt-5">Photos received</p>
+            <h2 class="font-headline text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">The shop has your request.</h2>
+            <p class="text-sm text-on-surface-variant mt-2 max-w-md mx-auto">
+              {% if success.reference and success.reference != "—" %}Reference <strong class="text-on-surface">{{ success.reference }}</strong>. {% endif %}We will call you during shop hours. If the vehicle is unsafe to drive, call us instead of waiting.
+            </p>
+            <div class="booking-summary">
+              <div><span>Photos received</span><strong>{{ success.photos.count }}</strong></div>
+              <div><span>Retention date</span><strong>{{ success.retention_expires_at|date:"M j, Y" }}</strong></div>
+              <div><span>Vehicle</span><strong>{{ success.vehicle }}</strong></div>
+              <div><span>Best time to call</span><strong>{{ success.preferred_time }}</strong></div>
+            </div>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <a class="btn-primary h-11 px-5" href="tel:+12045868253"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">call</span>Call the shop</a>
+              <a class="btn-secondary h-11 px-5" href="{% url 'home' %}">Back to home</a>
+            </div>
+          </div>
+          {% else %}
+          <div class="p-5 sm:p-8 border-b border-surface-container">
+            <p class="stamp text-primary">Damage photos</p>
+            <h2 class="font-headline text-2xl sm:text-[28px] font-extrabold tracking-tight mt-2">Add photos and context.</h2>
+            <p class="text-sm text-on-surface-variant mt-1.5">We use your details only to reply to this request. No final price is promised from photos alone.</p>
+          </div>
+
+          <div class="p-5 sm:p-8">
+            {% if messages %}
+              {% for message in messages %}
+              <div class="form-alert mb-5 {% if message.tags == 'success' %}is-success{% endif %}" role="status">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">{% if message.tags == 'success' %}check_circle{% else %}error{% endif %}</span>
+                <span>{{ message }}</span>
+              </div>
+              {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+            <div class="form-alert mb-5" role="alert">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">error</span>
+              <span>Please fix the highlighted fields and try again.</span>
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'photo_request' %}" enctype="multipart/form-data" data-photo-form data-photo-max-files="{{ photo_limit }}" data-photo-max-bytes="{{ photo_max_bytes }}" novalidate>
+              {% csrf_token %}
+              <div class="hidden" aria-hidden="true">
+                <label for="photo-website">Website</label>
+                {{ form.website }}
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="field-label" for="{{ form.full_name.id_for_label }}">Your name <span class="text-primary">*</span></label>
+                  {{ form.full_name }}
+                  {% if form.full_name.errors %}<p class="field-error">{{ form.full_name.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.phone_number.id_for_label }}">Phone <span class="text-primary">*</span></label>
+                  {{ form.phone_number }}
+                  {% if form.phone_number.errors %}<p class="field-error">{{ form.phone_number.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label class="field-label" for="{{ form.email.id_for_label }}">Email (optional)</label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.vehicle.id_for_label }}">Vehicle <span class="text-primary">*</span></label>
+                  {{ form.vehicle }}
+                  {% if form.vehicle.errors %}<p class="field-error">{{ form.vehicle.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label class="field-label" for="{{ form.damage_type.id_for_label }}">What are we looking at? <span class="text-primary">*</span></label>
+                  {{ form.damage_type }}
+                  {% if form.damage_type.errors %}<p class="field-error">{{ form.damage_type.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="field-label" for="{{ form.preferred_time.id_for_label }}">Best time to call</label>
+                  {{ form.preferred_time }}
+                  {% if form.preferred_time.errors %}<p class="field-error">{{ form.preferred_time.errors.0 }}</p>{% endif %}
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <label class="field-label" for="{{ form.description.id_for_label }}">What happened?</label>
+                {{ form.description }}
+                {% if form.description.errors %}<p class="field-error">{{ form.description.errors.0 }}</p>{% endif %}
+              </div>
+
+              <div class="mt-4">
+                <label class="field-label" for="{{ form.photos.id_for_label }}">Damage photos <span class="text-primary">*</span></label>
+                <div class="upload-zone" data-photo-drop>
+                  {{ form.photos }}
+                  <span class="material-symbols-outlined upload-icon" aria-hidden="true">add_photo_alternate</span>
+                  <span class="upload-copy"><strong>Choose up to {{ photo_limit }} photos</strong><small>JPEG, PNG or WebP · {{ photo_max_mb }} MB each</small></span>
+                </div>
+                <p class="text-[11px] text-on-surface-variant mt-1.5" id="id_photos_helptext">{{ form.photos.help_text }}</p>
+                {% if form.photos.errors %}<p class="field-error">{{ form.photos.errors.0 }}</p>{% endif %}
+                <div class="photo-preview-grid" data-photo-preview aria-live="polite"></div>
+              </div>
+
+              <label class="consent-row mt-4">
+                {{ form.privacy_consent }}
+                <span>I agree to Maple Leaf storing these photos to assess my request. I understand they are not published without separate written permission. <a class="text-primary font-semibold hover:underline" href="{% url 'privacy' %}">Privacy</a>.</span>
+              </label>
+              {% if form.privacy_consent.errors %}<p class="field-error">{{ form.privacy_consent.errors.0 }}</p>{% endif %}
+
+              <button type="submit" class="btn-primary w-full h-12 mt-5" data-submit>
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
+                <span data-submit-label>Send photo request</span>
+                <span class="spinner" data-spinner hidden aria-hidden="true"></span>
+              </button>
+              <p class="text-[12px] text-on-surface-variant text-center mt-3 leading-relaxed">We keep photos for {{ retention_days }} days by default. Need them removed sooner? <a class="text-primary font-semibold hover:underline" href="tel:+12045868253">Call the shop</a>.</p>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

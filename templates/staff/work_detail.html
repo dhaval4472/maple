@@ -1,0 +1,191 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_work_create' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">add_task</span>
+  <span class="hidden sm:inline">New work ticket</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_work' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to work tickets
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="staff-status {{ status_class }}">{{ ticket.get_status_display }}</span>
+      {% if ticket.is_overdue %}<span class="staff-status is-bad">Overdue</span>{% endif %}
+      <span class="staff-ref">{{ ticket.reference }}</span>
+    </div>
+    <h2 class="staff-page-title mt-3">{{ ticket.work_type }}</h2>
+    <p class="staff-page-lede">{{ ticket.vehicle }} · assigned to {{ ticket.assignee.get_full_name|default:ticket.assignee.get_username }}</p>
+  </div>
+  <div class="staff-page-actions">
+    {% if can_edit %}
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_work_edit' ticket.pk %}">
+      <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+      Edit or reassign
+    </a>
+    {% endif %}
+    {% if ticket.is_open %}
+    <form method="post" action="{% url 'staff_work_cancel' ticket.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Cancel {{ ticket.reference }}? The employee will see it as cancelled.">
+        <span class="material-symbols-outlined" aria-hidden="true">cancel</span>
+        Cancel ticket
+      </button>
+    </form>
+    {% else %}
+    <form method="post" action="{% url 'staff_work_reopen' ticket.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="staff-btn staff-btn-secondary">
+        <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+        Reopen ticket
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="staff-detail-grid">
+  <div class="staff-detail-main">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Job details</p>
+          <h3 class="staff-card-title">What is being done</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">handyman</span></span>
+      </div>
+
+      <dl class="staff-detail-list">
+        <div class="staff-detail-item">
+          <dt>Type of work</dt>
+          <dd>{{ ticket.work_type }}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Vehicle</dt>
+          <dd>{{ ticket.vehicle }}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Assigned to</dt>
+          <dd>{{ ticket.assignee.get_full_name|default:ticket.assignee.get_username }}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Due date</dt>
+          <dd>{% if ticket.due_date %}{{ ticket.due_date|date:"M j, Y" }}{% if ticket.is_overdue %} <span class="staff-status is-bad">Overdue</span>{% endif %}{% else %}<span class="staff-detail-empty">No due date</span>{% endif %}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Customer name</dt>
+          <dd>{% if ticket.customer_name %}{{ ticket.customer_name }}{% else %}<span class="staff-detail-empty">Not added</span>{% endif %}</dd>
+        </div>
+        <div class="staff-detail-item">
+          <dt>Customer phone</dt>
+          <dd>
+            {% if ticket.customer_phone %}
+            <a class="staff-contact-link" href="tel:{{ ticket.customer_phone }}">{{ ticket.customer_phone }}</a>
+            {% else %}
+            <span class="staff-detail-empty">Not added</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">From the shop owner</p>
+          <h3 class="staff-card-title">Instructions</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">sticky_note_2</span></span>
+      </div>
+      {% if ticket.instructions %}
+      <p class="staff-detail-value">{{ ticket.instructions|linebreaksbr }}</p>
+      {% else %}
+      <p class="staff-muted-note">No instructions were added to this ticket.</p>
+      {% endif %}
+    </section>
+
+    {% include "staff/_parts_used.html" with ticket=ticket parts_rows=parts_rows can_add_parts=can_add_parts can_manage=staff_is_master %}
+
+    {% if ticket.booking %}
+    <section class="staff-card staff-card-muted">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Original request</p>
+          <h3 class="staff-card-title">Booking {{ ticket.booking.reference }}</h3>
+        </div>
+        <a class="staff-text-link" href="{% url 'staff_booking_detail' ticket.booking.pk %}">Open booking <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+      </div>
+      <dl class="staff-detail-list">
+        <div class="staff-detail-item"><dt>Customer</dt><dd>{{ ticket.booking.full_name }}</dd></div>
+        <div class="staff-detail-item"><dt>Phone</dt><dd><a class="staff-contact-link" href="tel:{{ ticket.booking.phone_number }}">{{ ticket.booking.phone_number }}</a></dd></div>
+        <div class="staff-detail-item"><dt>Service</dt><dd>{{ ticket.booking.service }}</dd></div>
+        <div class="staff-detail-item"><dt>Preferred drop-off</dt><dd>{{ ticket.booking.preferred_date|date:"M j, Y" }} · {{ ticket.booking.preferred_window }}</dd></div>
+        <div class="staff-detail-item is-wide">
+          <dt>Customer notes</dt>
+          <dd>{% if ticket.booking.notes %}<span class="staff-detail-value">{{ ticket.booking.notes|linebreaksbr }}</span>{% else %}<span class="staff-detail-empty">No customer notes</span>{% endif %}</dd>
+        </div>
+      </dl>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+        The assigned employee can see the customer notes above. Internal request notes are not shown to employees.
+      </p>
+    </section>
+    {% endif %}
+
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">From the employee</p>
+          <h3 class="staff-card-title">Work notes</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">edit_note</span></span>
+      </div>
+      {% if ticket.employee_notes %}
+      <p class="staff-detail-value">{{ ticket.employee_notes|linebreaksbr }}</p>
+      {% else %}
+      <p class="staff-muted-note">The employee has not added notes yet.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="staff-detail-side">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">History</p>
+          <h3 class="staff-card-title">Ticket timing</h3>
+        </div>
+      </div>
+      <dl class="staff-meta-list">
+        <div><dt>Created</dt><dd>{{ created_label }}</dd></div>
+        <div><dt>Last updated</dt><dd>{{ updated_label }}</dd></div>
+        <div><dt>Started</dt><dd>{% if started_label %}{{ started_label }}{% else %}Not started{% endif %}</dd></div>
+        <div><dt>Completed</dt><dd>{% if completed_label %}{{ completed_label }}{% else %}Not completed{% endif %}</dd></div>
+        <div><dt>Created by</dt><dd>{% if ticket.created_by %}{{ ticket.created_by.get_full_name|default:ticket.created_by.get_username }}{% else %}Not recorded{% endif %}</dd></div>
+        <div><dt>Reference</dt><dd>{{ ticket.reference }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Need a change?</p>
+          <h3 class="staff-card-title">Editing rules</h3>
+        </div>
+      </div>
+      <p class="staff-help-copy">Assigned and in-progress tickets can be edited or reassigned. Completed and cancelled tickets must be reopened first, so the history stays clear.</p>
+      {% if can_edit %}
+      <a class="staff-text-link" href="{% url 'staff_work_edit' ticket.pk %}">Edit this ticket <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

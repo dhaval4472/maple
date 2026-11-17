@@ -1,0 +1,89 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_part_detail' part.pk %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {{ part.sku }}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · receive</p>
+    <h2 class="staff-page-title">Receive stock</h2>
+    <p class="staff-page-lede">Record a delivery for {{ part.name }}. The quantity on hand goes up by the amount you enter, and the delivery is saved in the ledger.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">{{ part.sku }}</p>
+        <h3 class="staff-card-title">{{ part.name }}</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">add_box</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.quantity.id_for_label }}">Quantity received</label>
+          {{ form.quantity }}
+          {% if form.quantity.errors %}<p class="field-error">{{ form.quantity.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">Count the containers or pieces that actually arrived.</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.unit_cost.id_for_label }}">Unit cost (optional)</label>
+          {{ form.unit_cost }}
+          {% if form.unit_cost.errors %}<p class="field-error">{{ form.unit_cost.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.unit_cost.help_text }}</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.note.id_for_label }}">Note (optional)</label>
+        {{ form.note }}
+        {% if form.note.errors %}<p class="field-error">{{ form.note.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add_box</span>
+          Add to stock
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_part_detail' part.pk %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Before you add</p>
+          <h3 class="staff-card-title">Currently on the shelf</h3>
+        </div>
+      </div>
+      <div class="stock-side-figure">
+        <strong>{{ part.quantity_on_hand }}</strong>
+        <span>{{ part.get_unit_display|lower }} in bin {{ part.bin_location|default:"not set" }}</span>
+      </div>
+      <dl class="staff-meta-list">
+        <div><dt>Supplier</dt><dd>{{ part.supplier.name|default:"Not set" }}</dd></div>
+        <div><dt>Unit cost</dt><dd>${{ part.cost_price|floatformat:2 }}</dd></div>
+      </dl>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        Receiving adds a new movement. It never edits an earlier delivery or count.
+      </p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

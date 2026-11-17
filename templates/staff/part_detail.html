@@ -1,0 +1,299 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+{% if can_manage %}
+<a class="staff-btn staff-btn-secondary" href="{% url 'staff_part_edit' part.pk %}">
+  <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+  <span class="hidden sm:inline">Edit part</span>
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_parts' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to parts
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="staff-status {{ part.stock_status_class }}">{{ part.stock_status_label }}</span>
+      {% if part.is_critical %}<span class="staff-status is-new">Critical</span>{% endif %}
+      {% if not part.is_active %}<span class="staff-status is-muted">Archived</span>{% endif %}
+      <span class="staff-ref">{{ part.sku }}</span>
+    </div>
+    <h2 class="staff-page-title mt-3">{{ part.name }}</h2>
+    <p class="staff-page-lede">
+      {{ part.get_category_display }}{% if part.brand %} · {{ part.brand }}{% endif %}{% if part.part_number %} · {{ part.part_number }}{% endif %}
+    </p>
+  </div>
+  <div class="staff-page-actions">
+    {% if part.is_active %}
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_part_use' part.pk %}">
+      <span class="material-symbols-outlined" aria-hidden="true">remove_circle</span>
+      Use stock
+    </a>
+    {% endif %}
+    {% if can_manage and part.is_active %}
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_part_receive' part.pk %}">
+      <span class="material-symbols-outlined" aria-hidden="true">add_box</span>
+      Receive stock
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="staff-detail-grid">
+  <div class="staff-detail-main">
+    <section class="staff-card stock-hero-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">On the shelf</p>
+          <h3 class="staff-card-title">Current stock</h3>
+        </div>
+        <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">inventory_2</span></span>
+      </div>
+
+      <div class="stock-hero">
+        <div class="stock-hero-figure">
+          <strong>{{ part.quantity_on_hand }}</strong>
+          <span>{{ part.get_unit_display }}</span>
+        </div>
+        <div class="stock-hero-facts">
+          <div>
+            <span class="stock-fact-label">Bin location</span>
+            <strong class="stock-bin">{{ part.bin_location|default:"Not set" }}</strong>
+          </div>
+          {% if can_manage %}
+          <div>
+            <span class="stock-fact-label">Reorder level</span>
+            <strong>{% if part.reorder_level %}{{ part.reorder_level }}{% else %}Not tracked{% endif %}</strong>
+          </div>
+          <div>
+            <span class="stock-fact-label">Restock to</span>
+            <strong>{% if part.reorder_target %}{{ part.reorder_target }}{% else %}—{% endif %}</strong>
+          </div>
+          {% endif %}
+          <div>
+            <span class="stock-fact-label">Last counted</span>
+            <strong>{% if part.last_counted_at %}{{ part.last_counted_at|date:"M j, Y" }}{% else %}Never{% endif %}</strong>
+          </div>
+        </div>
+      </div>
+
+      {% if can_manage %}
+      {% if part.is_low_stock %}
+      <div class="stock-reorder-callout">
+        <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+        <p>
+          This part is at or below its reorder level.
+          {% if part.suggested_order_quantity %}Order about <strong>{{ part.suggested_order_quantity }}</strong> {{ part.get_unit_display|lower }} to get back to {{ part.reorder_target }}.{% endif %}
+          {% if part.supplier %}Supplier: <strong>{{ part.supplier.name }}</strong>.{% else %}No supplier is set on this part.{% endif %}
+        </p>
+        <a class="staff-btn staff-btn-secondary shrink-0" href="{% url 'staff_reorder' %}">Open reorder list</a>
+      </div>
+      {% endif %}
+      <div class="stock-value-row">
+        <div>
+          <span class="stock-fact-label">Unit cost</span>
+          <strong>${{ part.cost_price|floatformat:2 }}</strong>
+        </div>
+        <div>
+          <span class="stock-fact-label">Stock value</span>
+          <strong>${{ stock_value|floatformat:2 }}</strong>
+        </div>
+        <div>
+          <span class="stock-fact-label">Supplier</span>
+          <strong>{{ part.supplier.name|default:"Not set" }}</strong>
+        </div>
+      </div>
+      {% else %}
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        Take only what the job needs and record it against your open ticket. Ask the shop owner if the shelf count looks wrong.
+      </p>
+      {% endif %}
+    </section>
+
+    {% if can_manage %}
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Ledger</p>
+          <h3 class="staff-card-title">Stock history</h3>
+        </div>
+        <a class="staff-text-link" href="{% url 'staff_part_receive' part.pk %}">Receive stock <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+      </div>
+
+      {% if movements %}
+      <div class="staff-table-wrap">
+        <table class="staff-table stock-history-table">
+          <thead>
+            <tr>
+              <th scope="col">When</th>
+              <th scope="col">Action</th>
+              <th scope="col" class="text-right">Change</th>
+              <th scope="col" class="text-right">Balance</th>
+              {% if can_manage %}<th scope="col" class="text-right">Unit cost</th>{% endif %}
+              <th scope="col">By</th>
+              <th scope="col">Job / reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for movement in movements %}
+            <tr>
+              <td class="stock-history-when">{{ movement.created_at|date:"M j, Y" }}<span>{{ movement.created_at|date:"g:i A" }}</span></td>
+              <td>{{ movement.get_kind_display }}</td>
+              <td class="text-right stock-delta {% if movement.quantity_delta > 0 %}is-up{% else %}is-down{% endif %}">
+                {% if movement.quantity_delta > 0 %}+{% endif %}{{ movement.quantity_delta }}
+              </td>
+              <td class="text-right stock-number">{{ movement.balance_after }}</td>
+              {% if can_manage %}
+              <td class="text-right stock-cost">{% if movement.unit_cost is not None %}${{ movement.unit_cost|floatformat:2 }}{% else %}—{% endif %}</td>
+              {% endif %}
+              <td>{% if movement.created_by %}{{ movement.created_by.get_full_name|default:movement.created_by.get_username }}{% else %}System{% endif %}</td>
+              <td class="stock-history-reason">
+                {% if movement.work_ticket %}
+                  {% if can_manage %}
+                  <a class="staff-text-link" href="{% url 'staff_work_detail' movement.work_ticket.pk %}">{{ movement.work_ticket.reference }}</a>
+                  {% else %}
+                  <a class="staff-text-link" href="{% url 'staff_my_work_detail' movement.work_ticket.pk %}">{{ movement.work_ticket.reference }}</a>
+                  {% endif %}
+                {% endif %}
+                {% if movement.reason %}{{ movement.reason }}{% elif not movement.work_ticket %}—{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="staff-muted-note">No stock has moved yet. Receive the first delivery or record a count to start the history.</p>
+      {% endif %}
+    </section>
+
+    <section class="staff-card staff-help-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Corrections</p>
+          <h3 class="staff-card-title">Counting and adjusting</h3>
+        </div>
+      </div>
+      <p class="staff-help-copy">A count records the number you actually see and links the difference to a reason. An adjustment is for damage, shrinkage or a correction. Neither one changes past movements, so the history still explains the balance.</p>
+      <div class="stock-inline-actions">
+        {% if part.is_active %}
+        <a class="staff-btn staff-btn-secondary" href="{% url 'staff_part_count' part.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">fact_check</span>
+          Count stock
+        </a>
+        <a class="staff-btn staff-btn-secondary" href="{% url 'staff_part_adjust' part.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+          Adjust stock
+        </a>
+        {% endif %}
+      </div>
+    </section>
+    {% else %}
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Your recent use</p>
+          <h3 class="staff-card-title">Times you took this part</h3>
+        </div>
+      </div>
+      {% if movements %}
+      <ul class="stock-usage-list">
+        {% for movement in movements %}
+        <li>
+          <span class="stock-usage-date">{{ movement.created_at|date:"M j, Y" }}</span>
+          <span class="stock-usage-change">{{ movement.quantity_delta }} {{ part.get_unit_display|lower }}</span>
+          {% if movement.work_ticket %}
+          <a class="staff-text-link" href="{% url 'staff_my_work_detail' movement.work_ticket.pk %}">{{ movement.work_ticket.reference }}</a>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="staff-muted-note">You have not recorded this part on a job yet.</p>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="staff-detail-side">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Part details</p>
+          <h3 class="staff-card-title">Reference</h3>
+        </div>
+      </div>
+      <dl class="staff-meta-list">
+        <div><dt>SKU</dt><dd>{{ part.sku }}</dd></div>
+        <div><dt>Category</dt><dd>{{ part.get_category_display }}</dd></div>
+        <div><dt>Brand</dt><dd>{{ part.brand|default:"—" }}</dd></div>
+        <div><dt>Part number</dt><dd>{{ part.part_number|default:"—" }}</dd></div>
+        <div><dt>Barcode</dt><dd>{{ part.barcode|default:"—" }}</dd></div>
+        <div><dt>Unit</dt><dd>{{ part.get_unit_display }}</dd></div>
+        <div><dt>Bin location</dt><dd>{{ part.bin_location|default:"—" }}</dd></div>
+        {% if can_manage %}<div><dt>Supplier</dt><dd>{{ part.supplier.name|default:"—" }}</dd></div>{% endif %}
+        <div><dt>Added</dt><dd>{{ part.created_at|date:"M j, Y" }}</dd></div>
+      </dl>
+      {% if part.notes %}
+      <p class="staff-detail-value stock-part-notes">{{ part.notes|linebreaksbr }}</p>
+      {% endif %}
+    </section>
+
+    {% if can_manage %}
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Quick actions</p>
+          <h3 class="staff-card-title">Move stock</h3>
+        </div>
+      </div>
+      <div class="staff-account-actions">
+        {% if part.is_active %}
+        <a class="staff-btn staff-btn-primary w-full" href="{% url 'staff_part_receive' part.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">add_box</span>
+          Receive stock
+        </a>
+        <a class="staff-btn staff-btn-secondary w-full" href="{% url 'staff_part_use' part.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">remove_circle</span>
+          Use stock
+        </a>
+        <a class="staff-btn staff-btn-secondary w-full" href="{% url 'staff_part_count' part.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">fact_check</span>
+          Count stock
+        </a>
+        <a class="staff-btn staff-btn-secondary w-full" href="{% url 'staff_part_adjust' part.pk %}">
+          <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+          Adjust stock
+        </a>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="staff-card {% if part.is_active %}staff-danger-card{% else %}{% endif %}">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">{% if part.is_active %}Archive{% else %}Restore{% endif %}</p>
+          <h3 class="staff-card-title">{% if part.is_active %}Stop using this part{% else %}Bring this part back{% endif %}</h3>
+        </div>
+      </div>
+      <p>{% if part.is_active %}Archiving hides the part from the shelf list and new searches. Its stock history and past job costs stay exactly as they are.{% else %}This part is archived. Restoring it puts it back in the shelf list and search.{% endif %}</p>
+      <form method="post" action="{% url 'staff_part_toggle' part.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="staff-btn {% if part.is_active %}staff-btn-danger-ghost{% else %}staff-btn-secondary{% endif %}"{% if part.is_active %} data-confirm="Archive {{ part.sku }}? Its history stays, but it disappears from the shelf list."{% endif %}>
+          <span class="material-symbols-outlined" aria-hidden="true">{% if part.is_active %}archive{% else %}unarchive{% endif %}</span>
+          {% if part.is_active %}Archive part{% else %}Restore part{% endif %}
+        </button>
+      </form>
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

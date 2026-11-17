@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}{{ page_title|default:"Maple Leaf Auto Body & Glass | Collision Repair & Auto Glass in North End Winnipeg" }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ meta_description|default:"Family-owned auto body, glass and repair services in North End Winnipeg. Collision repair, windshield replacement, MPI claim support, and mechanical services." }}{% endblock %}"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="{% block og_title %}{{ page_title|default:"Maple Leaf Auto Body & Glass" }}{% endblock %}"/>
+  <meta property="og:description" content="{% block og_description %}{{ meta_description|default:"Family-owned auto body, glass and repair services in North End Winnipeg." }}{% endblock %}"/>
+  <meta property="og:url" content="https://mapleleafauto.ca{{ request.path }}"/>
+  <meta property="og:site_name" content="Maple Leaf Auto Body & Glass"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}"/>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-surface font-body text-on-surface antialiased flex flex-col min-h-screen selection:bg-primary selection:text-on-primary">
+  {% include 'mapleleaf_app/partials/header.html' %}
+  <main class="w-full pt-20 bg-surface flex-grow">
+    {% block content %}{% endblock %}
+  </main>
+  {% include 'mapleleaf_app/partials/footer.html' %}
+  {% include 'mapleleaf_app/partials/callback_modal.html' %}
+  {% include 'mapleleaf_app/partials/mobile_bottom_bar.html' %}
+  {% include 'mapleleaf_app/partials/floating_helper.html' %}
+  <script src="{% static 'js/app.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

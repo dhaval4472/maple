@@ -1,0 +1,113 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_reorder' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to reorder list
+  </a>
+</div>
+
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · delivery</p>
+    <h2 class="staff-page-title">Receive a delivery</h2>
+    <p class="staff-page-lede">Pick the supplier, then enter the quantity that arrived for each part. Leave a line blank if nothing came in for it.</p>
+  </div>
+</div>
+
+<section class="staff-card">
+  <form method="get" class="staff-toolbar">
+    <label class="field-label stock-toolbar-label" for="delivery-supplier">Supplier</label>
+    <select id="delivery-supplier" class="staff-toolbar-select" name="supplier">
+      <option value="">Choose a supplier</option>
+      {% for option in suppliers %}
+      <option value="{{ option.pk }}" {% if supplier and supplier.pk == option.pk %}selected{% endif %}>{{ option.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="staff-btn staff-btn-secondary">Load parts</button>
+    {% if supplier %}
+    <a class="staff-text-link" href="{% url 'staff_bulk_receive' %}">Clear</a>
+    {% endif %}
+  </form>
+</section>
+
+{% if supplier %}
+<section class="staff-card">
+  <div class="staff-card-head">
+    <div>
+      <p class="staff-card-kicker">{{ supplier.name }}</p>
+      <h3 class="staff-card-title">Delivery quantities</h3>
+      {% if supplier.contact_name or supplier.phone %}
+      <p class="stock-supplier-meta">
+        {% if supplier.contact_name %}{{ supplier.contact_name }}{% endif %}
+        {% if supplier.phone %} · <a class="staff-contact-link" href="tel:{{ supplier.phone }}">{{ supplier.phone }}</a>{% endif %}
+      </p>
+      {% endif %}
+    </div>
+    <a class="staff-btn staff-btn-secondary staff-btn-compact" href="{% url 'staff_supplier_edit' supplier.pk %}">Supplier details</a>
+  </div>
+
+  {% if parts %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="supplier" value="{{ supplier.pk }}"/>
+    <div class="staff-table-wrap">
+      <table class="staff-table stock-receive-table">
+        <thead>
+          <tr>
+            <th scope="col">Part</th>
+            <th scope="col">Bin</th>
+            <th scope="col" class="text-right">On hand</th>
+            <th scope="col" class="text-right">Reorder at</th>
+            <th scope="col" class="text-right">Quantity received</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for part in parts %}
+          <tr>
+            <td>
+              <a class="staff-table-name" href="{% url 'staff_part_detail' part.pk %}">{{ part.name }}</a>
+              <span class="staff-table-phone">{{ part.sku }}{% if part.part_number %} · {{ part.part_number }}{% endif %}</span>
+            </td>
+            <td class="stock-bin">{{ part.bin_location|default:"—" }}</td>
+            <td class="text-right stock-number {% if part.quantity_on_hand <= 0 %}stock-number-empty{% endif %}">{{ part.quantity_on_hand }}</td>
+            <td class="text-right">{% if part.reorder_level %}{{ part.reorder_level }}{% else %}—{% endif %}</td>
+            <td class="text-right">
+              <label class="sr-only" for="receive-qty-{{ part.pk }}">Quantity received for {{ part.name }}</label>
+              <input class="stock-qty-input" id="receive-qty-{{ part.pk }}" type="number" name="qty_{{ part.pk }}" min="0" step="1" inputmode="numeric" placeholder="0"/>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="staff-form-actions stock-receive-actions">
+      <button type="submit" class="btn-primary h-11 px-6">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add_box</span>
+        Add delivery to stock
+      </button>
+      <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_bulk_receive' %}?supplier={{ supplier.pk }}">Reset</a>
+      <p class="staff-field-help">Each quantity creates a stock movement linked to this supplier's delivery.</p>
+    </div>
+  </form>
+  {% else %}
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+    <h3>No active parts use this supplier.</h3>
+    <p>Assign the supplier on a part first, then come back to receive the delivery.</p>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_parts' %}">Open parts</a>
+  </div>
+  {% endif %}
+</section>
+{% else %}
+<section class="staff-card">
+  <div class="staff-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+    <h3>Choose a supplier to start.</h3>
+    <p>The delivery sheet lists every active part from that supplier, including parts that are not low yet.</p>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_suppliers' %}">Manage suppliers</a>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

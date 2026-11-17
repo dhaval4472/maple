@@ -1,0 +1,84 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_part_detail' part.pk %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to {{ part.sku }}
+  </a>
+</div>
+
+<div class="staff-page-intro staff-detail-intro">
+  <div>
+    <p class="staff-kicker">Stockroom · adjust</p>
+    <h2 class="staff-page-title">Adjust stock</h2>
+    <p class="staff-page-lede">Use an adjustment for damage, shrinkage, a supplier return or a correction. A reason is required and the change is added to the ledger.</p>
+  </div>
+</div>
+
+<div class="staff-form-layout">
+  <section class="staff-card">
+    <div class="staff-card-head">
+      <div>
+        <p class="staff-card-kicker">{{ part.sku }}</p>
+        <h3 class="staff-card-title">{{ part.name }}</h3>
+      </div>
+      <span class="staff-card-icon"><span class="material-symbols-outlined" aria-hidden="true">tune</span></span>
+    </div>
+
+    <form method="post" class="staff-form-stack">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="staff-form-grid">
+        <div>
+          <label class="field-label" for="{{ form.quantity.id_for_label }}">Change</label>
+          {{ form.quantity }}
+          {% if form.quantity.errors %}<p class="field-error">{{ form.quantity.errors.0 }}</p>{% endif %}
+          <p class="staff-field-help">{{ form.quantity.help_text }}</p>
+        </div>
+        <div>
+          <label class="field-label" for="{{ form.reason.id_for_label }}">Reason</label>
+          {{ form.reason }}
+          {% if form.reason.errors %}<p class="field-error">{{ form.reason.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="{{ form.note.id_for_label }}">Note (optional)</label>
+        {{ form.note }}
+        {% if form.note.errors %}<p class="field-error">{{ form.note.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="staff-form-actions">
+        <button type="submit" class="btn-primary h-11 px-6">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">tune</span>
+          Save adjustment
+        </button>
+        <a class="staff-btn staff-btn-secondary h-11" href="{% url 'staff_part_detail' part.pk %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="staff-form-aside">
+    <section class="staff-card">
+      <div class="staff-card-head">
+        <div>
+          <p class="staff-card-kicker">Current balance</p>
+          <h3 class="staff-card-title">Before the change</h3>
+        </div>
+      </div>
+      <div class="stock-side-figure {% if part.quantity_on_hand <= 0 %}is-empty{% endif %}">
+        <strong>{{ part.quantity_on_hand }}</strong>
+        <span>{{ part.get_unit_display|lower }} in bin {{ part.bin_location|default:"not set" }}</span>
+      </div>
+      <p class="staff-note">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        If you are recording what you found on the shelf, use Count stock instead. Adjust is for a known correction.
+      </p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

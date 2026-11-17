@@ -1,0 +1,175 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}{{ service.title }} in Winnipeg | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}{{ service.summary }} Maple Leaf Auto Body &amp; Glass, 492 Dufferin Ave, North End Winnipeg.{% endblock %}
+{% block og_title %}{{ service.title }} | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block og_description %}{{ service.summary }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">{{ service_schema|safe }}</script>
+<script type="application/ld+json">{{ faq_schema|safe }}</script>
+{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12 lg:pb-12" data-rail-label="{{ service.short_title }}">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant flex-wrap" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <a class="hover:text-primary transition-colors" href="{% url 'services' %}">Services</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">{{ service.short_title }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mt-6">
+      <div class="lg:col-span-7">
+        <span class="service-icon service-icon-lg"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#{{ service.icon }}"></use></svg></span>
+        <p class="stamp text-primary mt-5">{{ service.category_label }}</p>
+        <h1 class="display-2 mt-3 max-w-[16ch]">{{ service.title }}</h1>
+        <p class="lede mt-5 max-w-[52ch] text-on-surface-variant">{{ service.intro }}</p>
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <button type="button" class="btn-primary h-12 px-5" data-callback-open data-service="{{ service.title }}">
+            Ask about {{ service.short_title|lower }}
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+          </button>
+          <a class="btn-secondary h-12 px-5" href="{% url 'repair_estimate' %}?service={{ service.slug }}">
+            <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">request_quote</span>
+            Get a planning estimate
+          </a>
+          <a class="btn-secondary h-12 px-5" href="{% url 'booking' %}">
+            <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">calendar_month</span>
+            Request a drop-off
+          </a>
+          <a class="text-link inline-flex items-center gap-1.5 text-sm" href="tel:+12045868253">
+            <span class="material-symbols-outlined text-[17px]" aria-hidden="true">call</span>
+            (204) 586-8253
+          </a>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5">
+        <div class="service-fact-card">
+          <div class="service-fact-head">
+            <span class="stamp text-on-surface-variant">At a glance</span>
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-on-surface-variant"><span class="status-dot status-dot-sm" aria-hidden="true"></span><span data-shop-status>Mon–Sat 9–6</span></span>
+          </div>
+          <dl class="service-facts">
+            <div><dt>Typical time</dt><dd>{{ service.time }}</dd></div>
+            <div><dt>Claims</dt><dd>{{ service.claims }}</dd></div>
+            <div><dt>Vehicles</dt><dd>Cars · SUVs · light pickups</dd></div>
+            <div><dt>Location</dt><dd>492 Dufferin Ave, Winnipeg</dd></div>
+          </dl>
+          <p class="service-fact-note">{{ service.note }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section bg-surface-container-low border-y border-surface-container">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
+      <div class="lg:col-span-7">
+        <p class="stamp text-primary">What's involved</p>
+        <h2 class="h2 mt-2 max-w-[18ch]">The work, step by step.</h2>
+        <ul class="service-included mt-6">
+          {% for item in service.included %}
+          <li>
+            <span class="material-symbols-outlined text-primary" aria-hidden="true">check_circle</span>
+            <span>{{ item }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="lg:col-span-5">
+        <div class="rail-card">
+          <p class="stamp text-primary">Not sure this is the right service?</p>
+          <h2 class="font-headline font-bold text-lg tracking-tight mt-2">Start with the symptom.</h2>
+          <p class="text-sm text-on-surface-variant mt-1.5 leading-relaxed">The repair triage on the home page narrows glass, collision, brakes, diagnostics and maintenance in three taps.</p>
+          <a class="btn-secondary h-11 px-4 mt-4 w-fit" href="{% url 'home' %}#triage">Try the repair triage</a>
+        </div>
+        {% if related_tools %}
+        <div class="rail-card mt-4">
+          <p class="stamp text-primary">Related tools</p>
+          <div class="mt-3 space-y-2">
+            {% for tool in related_tools %}
+            <a class="symptom-btn" href="{% url 'tools' %}{{ tool.slug }}/">
+              <span class="material-symbols-outlined text-primary" aria-hidden="true">{{ tool.icon }}</span>
+              <span class="flex-1 text-left"><span class="block text-sm font-semibold">{{ tool.title }}</span><span class="block text-xs text-on-surface-variant mt-0.5">{{ tool.tagline }}</span></span>
+              <span class="material-symbols-outlined text-[18px] text-on-surface-variant" aria-hidden="true">arrow_forward</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="page-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
+      <div class="lg:col-span-4">
+        <p class="stamp text-primary">Questions</p>
+        <h2 class="h2 mt-2 max-w-[16ch]">{{ service.short_title }} questions.</h2>
+        <p class="text-on-surface-variant mt-4 max-w-[32ch] leading-relaxed">If yours is not here, call the shop and ask. A person answers during business hours.</p>
+      </div>
+      <div class="lg:col-span-8" data-accordion>
+        {% for question, answer in service.faqs %}
+        <div class="faq-item">
+          <button type="button" class="faq-toggle" aria-expanded="false" aria-controls="faq-{{ service.slug }}-{{ forloop.counter }}">
+            <span>{{ question }}</span>
+            <span class="material-symbols-outlined faq-icon" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="faq-content-wrapper" id="faq-{{ service.slug }}-{{ forloop.counter }}"><div class="faq-inner"><p class="faq-answer">{{ answer }}</p></div></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if related_services %}
+<section class="section bg-surface-container-low border-y border-surface-container">
+  <div class="page-shell">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <p class="stamp text-primary">Related work</p>
+        <h2 class="h2 mt-2">Other {{ service.category_label|lower }} services.</h2>
+      </div>
+      <a class="text-link inline-flex items-center gap-1.5 text-sm" href="{% url 'services' %}">All services <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span></a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8" data-stagger>
+      {% for related in related_services %}
+      <a class="tool-card" href="{% url 'service_detail' related.slug %}">
+        <span class="tool-card-icon"><svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#{{ related.icon }}"></use></svg></span>
+        <span class="tool-card-time">{{ related.category_label }}</span>
+        <h3 class="tool-card-title">{{ related.title }}</h3>
+        <p class="tool-card-copy">{{ related.summary }}</p>
+        <span class="tool-card-cta">Open service <span class="material-symbols-outlined text-[17px]" aria-hidden="true">arrow_forward</span></span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="page-shell">
+    <div class="cta-band">
+      {% include "mapleleaf/partials/cta_art.html" %}
+      <div class="max-w-[34ch]">
+        <p class="stamp text-white/85">Next step</p>
+        <h2 class="h2 text-white mt-2">Tell us what the vehicle is doing.</h2>
+        <p class="text-white/75 mt-3 leading-relaxed">Leave your number or request a preferred drop-off window. The shop confirms the details with you.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row lg:flex-col gap-3 w-full sm:w-auto shrink-0">
+        <button type="button" class="btn-on-red h-12 px-5" data-callback-open data-service="{{ service.title }}">Request a callback</button>
+        <a class="h-12 px-5 inline-flex items-center justify-center gap-2 rounded border border-white/35 text-white text-sm font-semibold hover:bg-white/10 transition-colors" href="tel:+12045868253">(204) 586-8253</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
