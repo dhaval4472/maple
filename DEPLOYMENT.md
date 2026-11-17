@@ -16,7 +16,15 @@ video streaming, and no build tooling on the server.
 A fresh deployment is under 100 MB before user uploads. Keep the project under
 that budget by excluding development-only folders.
 
-Deploy with `rsync` using the provided exclude list:
+For a fresh server, clone the repository:
+
+```sh
+sudo mkdir -p /srv/mapleleaf
+sudo chown -R $USER:$USER /srv/mapleleaf
+git clone https://github.com/dhaval4472/maple.git /srv/mapleleaf
+```
+
+For later updates, `rsync` with the provided exclude list also works:
 
 ```sh
 rsync -av --exclude-from=.deployignore ./ user@host:/srv/mapleleaf/
@@ -31,23 +39,78 @@ the site paints a WebP frame sequence instead. This alone saves about 22 MB.
 
 ## Server setup
 
+The project is Django-only; CSS and JavaScript are already built and committed,
+so there is no npm or React build step on the server. Python, Django, Pillow and
+Gunicorn all support ARM64, so Oracle's free Ampere instances work fine.
+
+On Ubuntu 24.04 (ARM):
+
+```sh
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-venv python3-pip git nginx \
+  build-essential libjpeg-dev zlib1g-dev libwebp-dev \
+  certbot python3-certbot-nginx
+```
+
+Create the environment and install dependencies:
+
 ```sh
 cd /srv/mapleleaf
 python3 -m venv .venv
 . .venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+Create `/etc/mapleleaf.env` from `deploy/mapleleaf.env.example`. Fill in a fresh
+`DJANGO_SECRET_KEY`, your real domain, and your server IP. Keep the file
+root-owned with `600` permissions. The settings module reads these values at
+startup; no source edits are needed on the server.
+
+```sh
+sudo cp deploy/mapleleaf.env.example /etc/mapleleaf.env
+sudo chmod 600 /etc/mapleleaf.env
+sudo nano /etc/mapleleaf.env
+```
+
+While obtaining the Let's Encrypt certificate, set
+`DJANGO_SECURE_SSL_REDIRECT=0` and `DJANGO_SECURE_COOKIES=0`. Turn both on after
+HTTPS works. `DJANGO_DEBUG=0` requires a real `DJANGO_SECRET_KEY`.
+
+Prepare the database, collected static files, and upload folder:
+
+```sh
+cd /srv/mapleleaf
+. .venv/bin/activate
+set -a; . /etc/mapleleaf.env; set +a
 python manage.py migrate
 python manage.py collectstatic --noinput
 python manage.py createsuperuser
+mkdir -p media
 ```
 
-Serve `static/` (or the collected `staticfiles/`) and `media/` from nginx, or
-use WhiteNoise if nginx is unavailable. Gunicorn is included in
-`requirements.txt` for the application process.
+Install the provided service and nginx templates:
 
-Set `DEBUG = False`, a real `SECRET_KEY`, the production host in
-`ALLOWED_HOSTS`, and the production domain in `CSRF_TRUSTED_ORIGINS` before
-going live. The site timezone is `America/Winnipeg`.
+```sh
+sudo cp deploy/mapleleaf.service /etc/systemd/system/mapleleaf.service
+sudo cp deploy/nginx-mapleleaf.conf /etc/nginx/sites-available/mapleleaf
+sudo ln -s /etc/nginx/sites-available/mapleleaf /etc/nginx/sites-enabled/
+# Edit the service user if the host is Oracle Linux (use opc instead of ubuntu).
+# Replace the placeholder domain names in the nginx file.
+sudo nginx -t
+sudo systemctl daemon-reload
+sudo systemctl enable --now mapleleaf
+sudo systemctl restart nginx
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+```
+
+Open ports **80** and **443** in both the Oracle VCN security list and the
+instance firewall. nginx serves `/static/` and `/media/`; Gunicorn serves the
+Django app on `127.0.0.1:8000`. One worker with four threads keeps the in-memory
+sign-in rate limit consistent on this small site.
+
+The site timezone is `America/Winnipeg`. Keep regular off-server backups of
+`db.sqlite3` and `media/`; Oracle may reclaim an idle free-tier instance.
 
 ## Staff workspace
 

@@ -1,0 +1,24 @@
+# systemd unit for the Maple Leaf Django site.
+# Ubuntu users: ubuntu. Oracle Linux users: opc.
+# Install to /etc/systemd/system/mapleleaf.service.
+
+[Unit]
+Description=Maple Leaf Django site
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/srv/mapleleaf
+EnvironmentFile=/etc/mapleleaf.env
+ExecStart=/srv/mapleleaf/.venv/bin/gunicorn config.wsgi:application \
+  --bind 127.0.0.1:8000 \
+  --workers 1 \
+  --threads 4 \
+  --access-logfile - \
+  --error-logfile -
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

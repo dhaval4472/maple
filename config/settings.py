@@ -13,33 +13,75 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+def _csv_env(name):
+    """Read a comma-separated environment variable as a clean list."""
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z@16e-y0^6o^$0b1u0mknrb&4y%@^#644i2)g+o7lajxu&mueu'
+    return [
+        value.strip()
+        for value in os.environ.get(name, "").split(",")
+        if value.strip()
+    ]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.ngrok-free.app',
-    '.ngrok-free.dev',
-    '.ngrok.app',
-]
+# Secrets and deployment-specific hosts come from the environment. The values
+# below keep local development working without setup; production must override
+# them (see deploy/mapleleaf.env.example).
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or (
+    'django-insecure-z@16e-y0^6o^$0b1u0mknrb&4y%@^#644i2)g+o7lajxu&mueu'
+)
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 
-# Allow form posts (callback/contact) when the dev site is shared through ngrok.
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.ngrok-free.app',
-    'https://*.ngrok-free.dev',
-    'https://*.ngrok.app',
-]
+if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
+    raise ImproperlyConfigured(
+        "Set DJANGO_SECRET_KEY to a fresh random key before running with "
+        "DJANGO_DEBUG=0."
+    )
+
+ALLOWED_HOSTS = _csv_env("DJANGO_ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = _csv_env("DJANGO_CSRF_TRUSTED_ORIGINS")
+
+if DEBUG:
+    # Local development and temporary ngrok sharing.
+    ALLOWED_HOSTS += [
+        "localhost",
+        "127.0.0.1",
+        "[::1]",
+        ".ngrok-free.app",
+        ".ngrok-free.dev",
+        ".ngrok.app",
+    ]
+    CSRF_TRUSTED_ORIGINS += [
+        "https://*.ngrok-free.app",
+        "https://*.ngrok-free.dev",
+        "https://*.ngrok.app",
+    ]
+
+# nginx terminates TLS and forwards the original scheme to Django.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+
+# Enable these after HTTPS is working. Certbot's HTTP challenge needs plain
+# HTTP briefly, so the deployment env file can turn them on afterwards.
+SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "0") == "1"
+SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = (
+    os.environ.get("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", "0") == "1"
+)
+SECURE_HSTS_PRELOAD = os.environ.get("DJANGO_HSTS_PRELOAD", "0") == "1"
+
+SECURE_COOKIES = os.environ.get(
+    "DJANGO_SECURE_COOKIES", "0" if DEBUG else "1"
+) == "1"
+SESSION_COOKIE_SECURE = SECURE_COOKIES
+CSRF_COOKIE_SECURE = SECURE_COOKIES
 
 
 # Application definition
@@ -207,8 +249,12 @@ if os.environ.get('EMAIL_HOST'):
         },
     }
 else:
-    MAILERS = {
-        'default': {
-            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-        },
-    }
+    # Keep development mails visible in the console. In production, leaving
+    # MAILERS unset falls back to Django's SMTP backend; send_mail() failures
+    # are caught, so a host without SMTP still stores every request normally.
+    if DEBUG:
+        MAILERS = {
+            'default': {
+                'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+            },
+        }
