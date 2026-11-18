@@ -18,11 +18,16 @@
   <title>{% block title %}Maple Leaf Auto Body & Glass | North End Winnipeg{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Family-owned MPI Direct Repair certified auto body, automotive glass, and mechanical service in North End Winnipeg. Clear answers before the work starts.{% endblock %}"/>
 
-  <meta property="og:type" content="website"/>
+  <meta name="robots" content="{% block meta_robots %}{% if noindex %}noindex, nofollow{% else %}index, follow, max-image-preview:large{% endif %}{% endblock %}"/>
+  <link rel="canonical" href="{% block canonical_url %}https://mapleleafauto.ca{{ request.path }}{% endblock %}"/>
+
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}"/>
   <meta property="og:title" content="{% block og_title %}Maple Leaf Auto Body & Glass{% endblock %}"/>
   <meta property="og:description" content="{% block og_description %}Family-owned auto body, glass and mechanical repair on Dufferin Ave in North End Winnipeg.{% endblock %}"/>
-  <meta property="og:url" content="https://mapleleafauto.ca{{ request.path }}"/>
+  <meta property="og:url" content="{% block og_url %}https://mapleleafauto.ca{{ request.path }}{% endblock %}"/>
   <meta property="og:site_name" content="Maple Leaf Auto Body & Glass"/>
+  {% block og_image %}{% if og_image %}<meta property="og:image" content="{{ og_image }}"/><meta property="og:image:alt" content="{{ post.featured_image_alt|default:og_title }}"/>{% endif %}{% endblock %}
+  <meta name="twitter:card" content="{% block twitter_card %}summary{% endblock %}"/>
   <meta name="csrf-token" content="{{ csrf_token }}"/>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -31,9 +36,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 
   <link rel="icon" type="image/png" href="{% static 'img/package/logo.png' %}"/>
-  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=27"/>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=28"/>
   {% block extra_css %}{% endblock %}
-  {% block structured_data %}{% endblock %}
+  {% block structured_data %}{% if structured_data %}<script type="application/ld+json">{{ structured_data|safe }}</script>{% endif %}{% endblock %}
 </head>
 <body class="bg-surface font-body text-on-surface antialiased flex flex-col min-h-screen selection:bg-primary selection:text-white">
 
@@ -235,6 +240,7 @@
 
         <a class="nav-link {% if request.resolver_match.url_name == 'about' %}is-active{% endif %}" href="{% url 'about' %}">About</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'tools' or request.resolver_match.url_name == 'repair_estimate' or request.resolver_match.url_name == 'claim_navigator' or request.resolver_match.url_name == 'chip_checker' or request.resolver_match.url_name == 'repair_or_replace' %}is-active{% endif %}" href="{% url 'tools' %}">Tools</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'blog' or request.resolver_match.url_name == 'blog_post' or request.resolver_match.url_name == 'blog_category' or request.resolver_match.url_name == 'blog_tag' %}is-active{% endif %}" href="{% url 'blog' %}">Blog</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'booking' %}is-active{% endif %}" href="{% url 'booking' %}">Book</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}" href="{% url 'contact' %}">Contact</a>
         {% if account_home_name %}
@@ -339,6 +345,7 @@
         </div>
         <a class="mobile-nav-link {% if request.resolver_match.url_name == 'about' %}is-active{% endif %}" href="{% url 'about' %}"><span>About</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
         <a class="mobile-nav-link {% if request.resolver_match.url_name == 'tools' or request.resolver_match.url_name == 'repair_estimate' or request.resolver_match.url_name == 'claim_navigator' or request.resolver_match.url_name == 'chip_checker' or request.resolver_match.url_name == 'repair_or_replace' %}is-active{% endif %}" href="{% url 'tools' %}"><span>Tools</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        <a class="mobile-nav-link {% if request.resolver_match.url_name == 'blog' or request.resolver_match.url_name == 'blog_post' or request.resolver_match.url_name == 'blog_category' or request.resolver_match.url_name == 'blog_tag' %}is-active{% endif %}" href="{% url 'blog' %}"><span>Blog</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
         <a class="mobile-nav-link {% if request.resolver_match.url_name == 'booking' %}is-active{% endif %}" href="{% url 'booking' %}"><span>Book a drop-off</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
         <a class="mobile-nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}" href="{% url 'contact' %}"><span>Contact</span><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
         {% if account_home_name %}
@@ -407,6 +414,7 @@
           <a class="footer-link" href="{% url 'home' %}">Home</a>
           <a class="footer-link" href="{% url 'services' %}">All services</a>
           <a class="footer-link" href="{% url 'tools' %}">Repair tools</a>
+          <a class="footer-link" href="{% url 'blog' %}">Repair blog</a>
           <a class="footer-link" href="{% url 'booking' %}">Book a drop-off</a>
           <a class="footer-link" href="{% url 'about' %}">About us</a>
           <a class="footer-link" href="{% url 'contact' %}">Contact</a>

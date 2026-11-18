@@ -7,10 +7,11 @@ from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.images import get_image_dimensions
+from django.utils import timezone
 
 from .content import CALLBACK_WINDOWS, DROP_OFF_WINDOWS, SERVICES
 from .estimating import CLAIM_CHOICES, SEVERITY_CHOICES, VEHICLE_CLASSES, money
-from .models import EstimateAddOn
+from .models import BlogComment, EstimateAddOn
 
 PHONE_ERROR = "That phone number looks too short. Please check it."
 PHOTO_LIMIT = getattr(settings, "PHOTO_UPLOAD_MAX_FILES", 4)
@@ -306,3 +307,90 @@ class EstimateDetailsForm(StyledFormMixin, forms.Form):
                 self.fields.pop("severity", None)
         else:
             self.fields.pop("severity", None)
+
+
+COMMENT_LINK_RE = re.compile(r"\[[^\]]+\]\([^)]+\)|https?://[^\s<]+", re.I)
+COMMENT_EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+COMMENT_REPEATED_CHAR_RE = re.compile(r"(.)\1{9,}")
+COMMENT_SPAM_PHRASES = (
+    "viagra", "cialis", "casino", "crypto giveaway", "free followers",
+    "buy backlinks", "seo service", "whatsapp me", "telegram me",
+)
+
+
+class BlogCommentForm(StyledFormMixin, forms.Form):
+    """Name and comment only, with lightweight anti-spam checks.
+
+    Comments publish instantly, so the filters are deliberately conservative:
+    no email field, a honeypot, a length floor, a link ceiling and a duplicate
+    check against the same article. Links are made nofollow when rendered.
+    """
+
+    name = forms.CharField(max_length=100, label="Your name")
+    body = forms.CharField(
+        max_length=2000,
+        min_length=20,
+        label="Comment",
+        widget=forms.Textarea(attrs={
+            "rows": 5,
+            "maxlength": 2000,
+            "placeholder": "Add a useful question or experience. Links are welcome, but they are not followed.",
+        }),
+    )
+    website = forms.CharField(required=False, widget=forms.HiddenInput())  # honeypot
+
+    def __init__(self, *args, post=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.post = post
+
+    def clean_name(self):
+        name = (self.cleaned_data.get("name") or "").strip()
+        if not name:
+            return name
+        if COMMENT_LINK_RE.search(name) or COMMENT_EMAIL_RE.search(name):
+            raise ValidationError("Please use your name, not a link or email address.")
+        if len(re.findall(r"\d", name)) > 8:
+            raise ValidationError("That name looks automated. Please check it.")
+        return name
+
+    def clean_body(self):
+        body = (self.cleaned_data.get("body") or "").strip()
+        if len(COMMENT_LINK_RE.findall(body)) > 2:
+            raise ValidationError("Please include no more than two links in a comment.")
+        if COMMENT_EMAIL_RE.search(body):
+            raise ValidationError("Please do not post an email address in the comment.")
+
+        lowered = body.lower()
+        if any(phrase in lowered for phrase in COMMENT_SPAM_PHRASES):
+            raise ValidationError("That comment looks like spam. Please rewrite it.")
+        if COMMENT_REPEATED_CHAR_RE.search(body):
+            raise ValidationError("That comment looks like spam. Please rewrite it.")
+
+        letters = [char for char in body if char.isalpha()]
+        if len(letters) >= 40:
+            upper_ratio = sum(char.isupper() for char in letters) / len(letters)
+            if upper_ratio > 0.8:
+                raise ValidationError("Please write the comment in normal sentence case.")
+        return body
+
+    def clean_website(self):
+        value = self.cleaned_data.get("website")
+        if value:
+            raise ValidationError("Spam detected.")
+        return value
+
+    def clean(self):
+        cleaned = super().clean()
+        if self.errors or not self.post:
+            return cleaned
+
+        recent = timezone.now() - timedelta(hours=1)
+        duplicate = BlogComment.objects.filter(
+            post=self.post,
+            name__iexact=cleaned.get("name", ""),
+            body__iexact=cleaned.get("body", ""),
+            created_at__gte=recent,
+        ).exists()
+        if duplicate:
+            raise ValidationError("That comment has already been posted on this article.")
+        return cleaned

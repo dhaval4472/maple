@@ -142,7 +142,7 @@ account roles:
 
 | Role | Can open |
 | --- | --- |
-| **Master** (shop owner) | Dashboard, work tickets, team, customers, request inbox, reviews, repair stories, website activity, stockroom (parts, reorder list, suppliers), import/export and My account |
+| **Master** (shop owner) | Dashboard, work tickets, team, customers, request inbox, reviews, repair stories, blog, website activity, stockroom (parts, reorder list, suppliers), import/export and My account |
 | **Employee** | My work, Find a part (search only, no costs or stock administration) and My account |
 
 The role is stored in `StaffProfile`, not in Django's `is_staff` flag. A
@@ -172,6 +172,9 @@ What the master area covers:
 - **Repair stories** — add/edit before-and-after stories with automatic WebP
   optimisation. A story is public only when both written customer permission
   and the publish box are set.
+- **Blog** — write Markdown articles, manage categories and tags, run the SEO
+  publish gate, preview drafts and moderate comments. Only the master can open
+  these pages.
 - **Website activity** — first-party page views and events, with a CSV export.
 - **Stockroom** — parts catalogue, suppliers, receive/use/count/adjust, a low-stock
   reorder list, CSV import/export and the parts cost on each work ticket.
@@ -330,7 +333,56 @@ range, never a quote, and it can only show numbers a master has entered.
 - Employees cannot open the estimator pages; they are master-only. Django admin
   remains available at `/admin/` as a secondary editor for the same rows.
 
-### Customer accounts
+### Blog and SEO
+
+The public blog lives at `/blog/`. Articles, categories, tags and comments are
+managed only under **Staff → Blog**; employees cannot open any blog page. The
+body is Markdown only — headings use `##`, links are relative (for example
+`/services/windshield/`), and raw HTML is removed when the page renders. The
+rendering libraries (`markdown-it-py` and `bleach`) are pinned in
+`requirements.txt`, so there is no extra server setup.
+
+**Writing and publishing**
+
+- Start with **Write article**. Save draft keeps the post private; **Check &
+  publish** runs the same gate shown in the live panel on the edit screen.
+- **Preview** opens the draft in the public template with `noindex, nofollow`.
+  Only a master can use it or see the draft; visitors get a 404.
+- Featured images are re-encoded as WebP and require alt text. The image and
+  article text are stored in `media/` and `db.sqlite3`, so include both in
+  backups.
+- Categories group articles; tags connect them across categories. New tags can
+  be typed into the article editor with commas, or created under **Categories &
+  tags**.
+- Published posts, non-empty categories and non-empty tags are added to
+  `/sitemap.xml` automatically. Drafts and empty topic pages are excluded.
+- Article pages include a canonical URL, Open Graph tags and JSON-LD
+  (`BlogPosting` and breadcrumbs). Keep `DJANGO_ALLOWED_HOSTS` set to the real
+  domain so generated canonical URLs match the public address.
+
+**The publish gate**
+
+Google has no official pass/fail API, so this is a best-practice checklist, not
+a ranking guarantee. Required checks block publishing: unique title and slug;
+SEO title of 30–60 characters; meta description of 120–160 characters (the
+excerpt is the fallback); a focus keyword used in the title, slug and opening
+paragraph; at least 300 words; at least one H2; a relative link to a service,
+tool or blog page; alt text when an image is used; and a keyword-stuffing limit.
+Advisory checks — featured image, FAQ section, short paragraphs and an external
+citation — are reminders only and never block a publish.
+
+Editing a live post so it fails a required check returns it to drafts instead
+of leaving stale SEO metadata online. Fix the highlighted items and publish
+again.
+
+**Comments**
+
+Comments need a name and a message only — no login, email field or account.
+They publish instantly after honeypot, length, link-count, duplicate,
+repeated-character, spam-phrase and uppercase-ratio checks, plus a limit of five
+comments per article per IP in ten minutes. Rendered links use
+`rel="nofollow noopener"`. Masters can hide or delete anything from **Blog →
+Comments**. Nothing is emailed or texted when a comment arrives.
 
 Customers sign in through the same page as everyone else:
 

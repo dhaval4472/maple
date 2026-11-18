@@ -1,0 +1,34 @@
+<aside class="blog-sidebar" aria-label="Blog topics">
+  <section class="blog-side-card">
+    <p class="stamp text-primary">Categories</p>
+    <div class="blog-filter-list">
+      <a class="{% if not active_category %}is-active{% endif %}" href="{% url 'blog' %}">All articles</a>
+      {% for category in categories %}
+      <a class="{% if active_category and active_category.pk == category.pk %}is-active{% endif %}" href="{{ category.get_absolute_url }}">
+        <span>{{ category.name }}</span>
+        <span class="blog-filter-count">{{ category.post_count }}</span>
+      </a>
+      {% empty %}
+      <p class="text-sm text-on-surface-variant">Categories are being prepared.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="blog-side-card">
+    <p class="stamp text-primary">Popular tags</p>
+    <div class="blog-tag-cloud">
+      {% for tag in tags %}
+      <a class="{% if active_tag and active_tag.pk == tag.pk %}is-active{% endif %}" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>
+      {% empty %}
+      <p class="text-sm text-on-surface-variant">Tags are being prepared.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="blog-side-card blog-side-cta">
+    <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+    <p class="stamp text-on-surface-variant">MPI claim question?</p>
+    <h2>Coverage is MPI’s call. Repair guidance is ours.</h2>
+    <a class="btn-secondary h-11 px-4 mt-4 w-full" href="{% url 'claim_navigator' %}">Open claim navigator</a>
+  </section>
+</aside>

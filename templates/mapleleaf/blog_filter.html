@@ -1,0 +1,76 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_type %}website{% endblock %}
+{% block og_title %}{{ og_title }}{% endblock %}
+{% block og_description %}{{ og_description }}{% endblock %}
+{% block og_url %}{{ og_url }}{% endblock %}
+{% block twitter_card %}summary{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12" data-rail-label="Blog">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <a class="hover:text-primary transition-colors" href="{% url 'blog' %}">Blog</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">{% if active_category %}{{ active_category.name }}{% else %}{{ active_tag.name }}{% endif %}</span>
+    </nav>
+
+    <div class="blog-hero mt-6">
+      <div>
+        <p class="stamp text-primary">{% if active_category %}Category{% else %}Tag{% endif %}</p>
+        <h1 class="display-2 mt-3 max-w-[18ch]">{{ page_title }}</h1>
+        <p class="lede mt-5 max-w-[58ch] text-on-surface-variant">{{ meta_description }}</p>
+      </div>
+      <div class="blog-hero-mark" aria-hidden="true">
+        <span class="material-symbols-outlined">{% if active_category %}category{% else %}tag{% endif %}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell blog-layout">
+    <div>
+      {% if posts.object_list %}
+      <div class="blog-grid">
+        {% for post in posts.object_list %}
+        {% include "mapleleaf/partials/blog_card.html" %}
+        {% endfor %}
+      </div>
+
+      {% if posts.has_other_pages %}
+      <nav class="blog-pagination" aria-label="Blog pagination">
+        {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}">
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+          Newer
+        </a>
+        {% endif %}
+        <span>Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+        {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}">
+          Older
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+        </a>
+        {% endif %}
+      </nav>
+      {% endif %}
+      {% else %}
+      <div class="blog-empty">
+        <span class="material-symbols-outlined" aria-hidden="true">article</span>
+        <h2>No published articles here yet.</h2>
+        <p>Browse the full blog for the latest repair guides from the shop.</p>
+        <a class="btn-primary h-11 px-5 mt-2" href="{% url 'blog' %}">All articles</a>
+      </div>
+      {% endif %}
+    </div>
+    {% include "mapleleaf/partials/blog_sidebar.html" %}
+  </div>
+</section>
+{% endblock %}

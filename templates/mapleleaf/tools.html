@@ -45,7 +45,7 @@
       {% endfor %}
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
       <div class="rail-card">
         <p class="stamp text-primary">Prefer to skip the form?</p>
         <h2 class="font-headline font-bold text-lg tracking-tight mt-2">Book a preferred drop-off window.</h2>
@@ -62,6 +62,15 @@
         <a class="btn-secondary h-11 px-4 mt-4 w-fit" href="{% url 'photo_request' %}">
           <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">add_a_photo</span>
           Start a photo request
+        </a>
+      </div>
+      <div class="rail-card">
+        <p class="stamp text-primary">Prefer to read first?</p>
+        <h2 class="font-headline font-bold text-lg tracking-tight mt-2">Learn from our repair blog.</h2>
+        <p class="text-sm text-on-surface-variant mt-1.5 leading-relaxed">Plain-language guides on glass, collision repair, maintenance and MPI claims, written by the shop.</p>
+        <a class="btn-secondary h-11 px-4 mt-4 w-fit" href="{% url 'blog' %}">
+          <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">menu_book</span>
+          Browse articles
         </a>
       </div>
     </div>

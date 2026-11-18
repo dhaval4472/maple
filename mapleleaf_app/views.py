@@ -6,11 +6,15 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.http import Http404, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from .blog import render_blog_markdown, render_comment
 from .content import (
     CALLBACK_WINDOWS,
     REVIEWS,
@@ -21,11 +25,21 @@ from .content import (
 )
 from .customer_access import customer_for_submission
 from .estimating import money, price_estimate, starting_price
-from .forms import BookingForm, ClaimIntakeForm, EstimateDetailsForm, PhotoRequestForm
+from .forms import (
+    BlogCommentForm,
+    BookingForm,
+    ClaimIntakeForm,
+    EstimateDetailsForm,
+    PhotoRequestForm,
+)
 from .housekeeping import maybe_prune_expired_photo_requests
 from .images import optimize_photo_upload
 from .models import (
     AnalyticsEvent,
+    BlogCategory,
+    BlogComment,
+    BlogPost,
+    BlogTag,
     BookingRequest,
     CallbackRequest,
     ClaimIntake,
@@ -36,6 +50,7 @@ from .models import (
     RepairStory,
     Review,
 )
+from .roles import is_master
 
 SHOP_PHONE_DISPLAY = "(204) 586-8253"
 SHOP_EMAIL = getattr(settings, "SHOP_EMAIL", "mapleleafautorepairs@gmail.com")
@@ -650,6 +665,305 @@ def photo_request_view(request):
             "photo_limit": getattr(settings, "PHOTO_UPLOAD_MAX_FILES", 4),
             "photo_max_bytes": getattr(settings, "PHOTO_UPLOAD_MAX_BYTES", 6 * 1024 * 1024),
             "photo_max_mb": getattr(settings, "PHOTO_UPLOAD_MAX_BYTES", 6 * 1024 * 1024) // (1024 * 1024),
+        },
+    )
+
+
+def _published_posts():
+    return (
+        BlogPost.objects.filter(status=BlogPost.STATUS_PUBLISHED)
+        .select_related("category", "author")
+        .prefetch_related("tags")
+        .order_by("-published_at", "-created_at")
+    )
+
+
+def _blog_taxonomies():
+    published = Q(posts__status=BlogPost.STATUS_PUBLISHED)
+    categories = BlogCategory.objects.annotate(
+        post_count=Count("posts", filter=published, distinct=True)
+    ).order_by("name")
+    tags = BlogTag.objects.annotate(
+        post_count=Count("posts", filter=published, distinct=True)
+    ).order_by("name")
+    return categories, tags
+
+
+def blog_list_view(request):
+    posts = _published_posts()
+    categories, tags = _blog_taxonomies()
+    paginator = Paginator(posts, 6)
+    page = paginator.get_page(request.GET.get("page"))
+    canonical = request.build_absolute_uri(reverse("blog"))
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        "name": "Maple Leaf Auto Body & Glass repair blog",
+        "description": "Practical repair, glass, maintenance and MPI claim guidance from a Winnipeg auto body shop.",
+        "url": canonical,
+        "blogPost": [
+            {
+                "@type": "BlogPosting",
+                "headline": post.display_title,
+                "url": request.build_absolute_uri(post.get_absolute_url()),
+                "datePublished": post.published_at.isoformat() if post.published_at else None,
+            }
+            for post in page.object_list
+        ],
+    }
+
+    return render(
+        request,
+        "mapleleaf/blog_list.html",
+        {
+            "posts": page,
+            "categories": categories,
+            "tags": tags,
+            "page_title": "Repair blog",
+            "canonical_url": canonical,
+            "og_title": "Repair advice from Maple Leaf Auto Body",
+            "og_description": "Plain-language repair, glass and MPI guidance from our Winnipeg shop.",
+            "og_url": canonical,
+            "structured_data": _json_ld([structured]),
+        },
+    )
+
+
+def _blog_filter_view(request, *, category=None, tag=None):
+    posts = _published_posts()
+    if category is not None:
+        posts = posts.filter(category=category)
+        title = f"{category.name} articles"
+        description = category.description or (
+            f"Read Maple Leaf Auto Body's {category.name} repair guidance."
+        )
+        url_name, lookup = "blog_category", category.slug
+    else:
+        posts = posts.filter(tags=tag)
+        title = f"Articles tagged “{tag.name}”"
+        description = f"Articles from Maple Leaf Auto Body tagged {tag.name}."
+        url_name, lookup = "blog_tag", tag.slug
+
+    categories, tags = _blog_taxonomies()
+    paginator = Paginator(posts, 6)
+    page = paginator.get_page(request.GET.get("page"))
+    canonical = request.build_absolute_uri(reverse(url_name, kwargs={"slug": lookup}))
+
+    structured = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": title,
+        "description": description,
+        "url": canonical,
+        "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": index + 1,
+                    "url": request.build_absolute_uri(post.get_absolute_url()),
+                    "name": post.display_title,
+                }
+                for index, post in enumerate(page.object_list)
+            ],
+        },
+    }
+
+    return render(
+        request,
+        "mapleleaf/blog_filter.html",
+        {
+            "posts": page,
+            "categories": categories,
+            "tags": tags,
+            "active_category": category,
+            "active_tag": tag,
+            "page_title": title,
+            "meta_description": description,
+            "canonical_url": canonical,
+            "og_title": title,
+            "og_description": description,
+            "og_url": canonical,
+            "structured_data": _json_ld([structured]),
+            "noindex": not page.object_list,
+        },
+    )
+
+
+def blog_category_view(request, slug):
+    category = get_object_or_404(BlogCategory, slug=slug)
+    return _blog_filter_view(request, category=category)
+
+
+def blog_tag_view(request, slug):
+    tag = get_object_or_404(BlogTag, slug=slug)
+    return _blog_filter_view(request, tag=tag)
+
+
+def _blog_related_posts(post):
+    candidates = _published_posts().exclude(pk=post.pk)
+    selected = []
+    if post.category_id:
+        selected = list(candidates.filter(category=post.category)[:3])
+    if len(selected) < 3:
+        for extra in candidates.exclude(
+            pk__in=[item.pk for item in selected]
+        )[: 3 - len(selected)]:
+            selected.append(extra)
+    return selected
+
+
+def blog_post_view(request, slug):
+    post = get_object_or_404(
+        BlogPost.objects.select_related("category", "author").prefetch_related("tags"),
+        slug=slug,
+    )
+    preview = request.GET.get("preview") == "1" and is_master(request.user)
+    if not post.is_published and not preview:
+        raise Http404("That article is not available.")
+
+    can_comment = post.allow_comments and not preview
+    comment_form = BlogCommentForm(post=post)
+    if request.method == "POST" and can_comment:
+        if request.POST.get("website"):
+            return redirect(f"{post.get_absolute_url()}#comments")
+        comment_form = BlogCommentForm(request.POST, post=post)
+        if comment_form.is_valid():
+            if _rate_limited(request, f"blog-comment:{post.pk}", limit=5, window=600):
+                messages.error(
+                    request,
+                    "Too many comments from this connection. Please try again later.",
+                )
+            else:
+                BlogComment.objects.create(
+                    post=post,
+                    name=comment_form.cleaned_data["name"],
+                    body=comment_form.cleaned_data["body"],
+                    ip_address=_client_ip(request),
+                )
+                messages.success(request, "Your comment is live. Thanks for adding to the conversation.")
+                return redirect(f"{post.get_absolute_url()}#comments")
+
+    comments = []
+    if not preview:
+        comments = [
+            {
+                "comment": comment,
+                "rendered_body": render_comment(comment.body),
+            }
+            for comment in post.comments.filter(is_hidden=False).order_by("created_at")
+        ]
+    canonical = request.build_absolute_uri(post.get_absolute_url())
+    image_url = request.build_absolute_uri(post.featured_image.url) if post.featured_image else ""
+    description = post.display_description
+
+    author_name = (
+        (post.author.get_full_name() or post.author.get_username())
+        if post.author
+        else "Maple Leaf Auto Body"
+    )
+    author_initials = "".join(
+        part[0] for part in author_name.split()[:2] if part
+    ).upper() or "ML"
+
+    author = {"@type": "Organization", "name": "Maple Leaf Auto Body & Glass"}
+    if post.author:
+        author = {
+            "@type": "Person",
+            "name": author_name,
+            "jobTitle": "Maple Leaf Auto Body & Glass",
+        }
+
+    article_schema = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": post.display_title,
+        "description": description,
+        "url": canonical,
+        "mainEntityOfPage": canonical,
+        "datePublished": post.published_at.isoformat() if post.published_at else None,
+        "dateModified": post.updated_at.isoformat(),
+        "author": author,
+        "publisher": {
+            "@type": "AutoRepair",
+            "name": "Maple Leaf Auto Body & Glass",
+            "telephone": "+12045868253",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "492 Dufferin Ave",
+                "addressLocality": "Winnipeg",
+                "addressRegion": "MB",
+                "postalCode": "R2W 2Y6",
+                "addressCountry": "CA",
+            },
+        },
+        "keywords": post.focus_keyword or None,
+        "articleSection": post.category.name if post.category else None,
+        "wordCount": post.word_count,
+    }
+    if image_url:
+        article_schema["image"] = [image_url]
+
+    breadcrumb_items = [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": request.build_absolute_uri(reverse("home")),
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Blog",
+            "item": request.build_absolute_uri(reverse("blog")),
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": post.display_title,
+            "item": canonical,
+        },
+    ]
+    if post.category:
+        breadcrumb_items.insert(
+            2,
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": post.category.name,
+                "item": request.build_absolute_uri(post.category.get_absolute_url()),
+            },
+        )
+        for index, item in enumerate(breadcrumb_items, start=1):
+            item["position"] = index
+
+    return render(
+        request,
+        "mapleleaf/blog_detail.html",
+        {
+            "post": post,
+            "rendered_body": render_blog_markdown(post.body),
+            "comments": comments,
+            "comment_form": comment_form,
+            "can_comment": can_comment,
+            "related_posts": _blog_related_posts(post) if not preview else [],
+            "preview": preview,
+            "author_name": author_name,
+            "author_initials": author_initials,
+            "page_title": post.display_title,
+            "meta_description": description,
+            "canonical_url": canonical,
+            "og_title": post.display_title,
+            "og_description": description,
+            "og_url": canonical,
+            "og_image": image_url,
+            "noindex": preview,
+            "structured_data": _json_ld([article_schema, {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": breadcrumb_items,
+            }]),
         },
     )
 

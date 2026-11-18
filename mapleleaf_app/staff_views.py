@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import re
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from functools import wraps
@@ -29,9 +30,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
+from .blog import evaluate_seo, post_seo_data
 from .inventory import (
     low_stock_count,
     low_stock_parts,
@@ -50,6 +53,10 @@ from .customer_access import link_customer_requests
 from .customer_forms import CustomerCreateForm, CustomerProfileForm
 from .models import (
     AnalyticsEvent,
+    BlogCategory,
+    BlogComment,
+    BlogPost,
+    BlogTag,
     BookingRequest,
     CallbackRequest,
     ClaimIntake,
@@ -76,6 +83,9 @@ from .roles import (
 )
 from .staff_forms import (
     AdjustStockForm,
+    BlogCategoryForm,
+    BlogPostForm,
+    BlogTagForm,
     BookingUpdateForm,
     CallbackUpdateForm,
     ClaimUpdateForm,
@@ -187,6 +197,7 @@ NAV_ITEMS = [
 ]
 
 CONTENT_ITEMS = [
+    ("blog", "Blog", "article", "staff_blog", None),
     ("estimator", "Estimator", "request_quote", "staff_estimator", None),
     ("reviews", "Reviews", "reviews", "staff_reviews", None),
     ("stories", "Repair stories", "auto_stories", "staff_stories", None),
@@ -2668,6 +2679,346 @@ def staff_story_delete(request, pk):
     story.delete()
     messages.success(request, f"Repair story “{title}” was deleted.")
     return redirect("staff_stories")
+
+
+# ---------------------------------------------------------------------------
+# Blog authoring and moderation
+# ---------------------------------------------------------------------------
+
+
+def _blog_form_snapshot(form, post=None):
+    """Combine bound form data with saved values for the live SEO checklist."""
+
+    fields = (
+        "title", "slug", "excerpt", "body", "focus_keyword", "seo_title",
+        "meta_description", "featured_image", "featured_image_alt",
+    )
+    cleaned = getattr(form, "cleaned_data", {}) or {}
+    snapshot = {}
+    for field in fields:
+        if field in cleaned:
+            snapshot[field] = cleaned[field]
+        elif field in form.data:
+            snapshot[field] = form.data.get(field, "")
+        elif post is not None:
+            snapshot[field] = getattr(post, field, "")
+        else:
+            snapshot[field] = ""
+
+    if (
+        not snapshot.get("featured_image")
+        and post is not None
+        and post.featured_image
+        and not form.files.get("featured_image")
+    ):
+        snapshot["featured_image"] = post.featured_image
+    snapshot["pk"] = post.pk if post is not None else None
+    return snapshot
+
+
+def _sync_blog_tags(post, raw_tags):
+    names = [part.strip() for part in re.split(r"[,\n]", raw_tags or "") if part.strip()]
+    tags = []
+    for name in names[:10]:
+        slug = slugify(name)[:100] or f"tag-{len(tags) + 1}"
+        tag, _created = BlogTag.objects.get_or_create(
+            slug=slug,
+            defaults={"name": name[:80]},
+        )
+        tags.append(tag)
+    post.tags.set(tags)
+
+
+def _publish_blog_post(request, post):
+    report = evaluate_seo(post_seo_data(post), exclude_pk=post.pk)
+    if not report["passed"]:
+        if post.status == BlogPost.STATUS_PUBLISHED:
+            post.status = BlogPost.STATUS_DRAFT
+            post.save(update_fields=["status", "updated_at"])
+        messages.error(
+            request,
+            f"Publish blocked. Fix {len(report['hard_failures'])} required SEO check(s) first.",
+        )
+        for check in report["hard_failures"]:
+            messages.error(request, f"{check['label']}: {check['detail']}")
+        return False
+
+    post.status = BlogPost.STATUS_PUBLISHED
+    if not post.published_at:
+        post.published_at = timezone.now()
+    post.save(update_fields=["status", "published_at", "updated_at"])
+    if report["advisories"]:
+        messages.warning(
+            request,
+            f"“{post.title}” is live. {len(report['advisories'])} optional SEO suggestion(s) remain.",
+        )
+    else:
+        messages.success(request, f"“{post.title}” is now live on the blog.")
+    return True
+
+
+def _unpublish_blog_post(request, post):
+    post.status = BlogPost.STATUS_DRAFT
+    post.save(update_fields=["status", "updated_at"])
+    messages.success(request, f"“{post.title}” was moved back to drafts.")
+
+
+@staff_required
+def staff_blog(request):
+    posts = (
+        BlogPost.objects.select_related("category", "author")
+        .annotate(
+            visible_comments=Count(
+                "comments", filter=Q(comments__is_hidden=False), distinct=True
+            ),
+            hidden_comments=Count(
+                "comments", filter=Q(comments__is_hidden=True), distinct=True
+            ),
+        )
+        .order_by("-updated_at")
+    )
+    counts = {
+        "": posts.count(),
+        BlogPost.STATUS_DRAFT: posts.filter(status=BlogPost.STATUS_DRAFT).count(),
+        BlogPost.STATUS_PUBLISHED: posts.filter(status=BlogPost.STATUS_PUBLISHED).count(),
+    }
+    tabs, active_status = _status_tabs(request, BlogPost.STATUS_CHOICES, counts, counts[""])
+    if active_status:
+        posts = posts.filter(status=active_status)
+
+    context = _staff_context(
+        request,
+        "blog",
+        "Blog",
+        posts=posts,
+        status_tabs=tabs,
+        draft_count=counts[BlogPost.STATUS_DRAFT],
+        published_count=counts[BlogPost.STATUS_PUBLISHED],
+        hidden_comment_count=BlogComment.objects.filter(is_hidden=True).count(),
+        categories=BlogCategory.objects.annotate(
+            post_count=Count("posts", distinct=True)
+        ).order_by("name"),
+        tags=BlogTag.objects.annotate(post_count=Count("posts", distinct=True)).order_by("name"),
+    )
+    return render(request, "staff/blog_list.html", context)
+
+
+@staff_required
+def staff_blog_form(request, pk=None):
+    post = get_object_or_404(BlogPost, pk=pk) if pk else None
+    old_image = None
+    if post and post.featured_image:
+        old_image = (post.featured_image.name, post.featured_image.storage)
+
+    if request.method == "POST":
+        form = BlogPostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            saved = form.save(commit=False)
+            if not saved.author_id:
+                saved.author = request.user
+            saved.save()
+            _sync_blog_tags(saved, form.cleaned_data.get("tags_input"))
+
+            if old_image and saved.featured_image.name != old_image[0]:
+                try:
+                    old_image[1].delete(old_image[0])
+                except Exception:
+                    pass
+
+            action = request.POST.get("action")
+            if action == "publish":
+                _publish_blog_post(request, saved)
+            elif action == "unpublish":
+                _unpublish_blog_post(request, saved)
+            else:
+                saved_message = f"“{saved.title}” was saved."
+                if saved.is_published:
+                    report = evaluate_seo(post_seo_data(saved), exclude_pk=saved.pk)
+                    if not report["passed"]:
+                        _unpublish_blog_post(request, saved)
+                        messages.error(
+                            request,
+                            "The live article no longer passes the required SEO checks, "
+                            "so it was moved back to drafts.",
+                        )
+                        for check in report["hard_failures"]:
+                            messages.error(
+                                request, f"{check['label']}: {check['detail']}"
+                            )
+                    else:
+                        messages.success(request, saved_message)
+                else:
+                    messages.success(request, saved_message)
+            return redirect("staff_blog_edit", pk=saved.pk)
+
+        messages.error(request, "Please fix the highlighted fields before saving.")
+    else:
+        form = BlogPostForm(instance=post)
+
+    report = evaluate_seo(_blog_form_snapshot(form, post), exclude_pk=post.pk if post else None)
+    context = _staff_context(
+        request,
+        "blog",
+        "Edit article" if post else "Write article",
+        form=form,
+        post=post,
+        is_new=post is None,
+        seo=report,
+    )
+    return render(request, "staff/blog_form.html", context)
+
+
+@staff_required
+def staff_blog_preview(request, pk):
+    post = get_object_or_404(BlogPost, pk=pk)
+    return redirect(f"{post.get_absolute_url()}?preview=1")
+
+
+@require_POST
+@staff_required
+def staff_blog_publish(request, pk):
+    post = get_object_or_404(BlogPost, pk=pk)
+    if _publish_blog_post(request, post):
+        return redirect("staff_blog")
+    return redirect("staff_blog_edit", pk=post.pk)
+
+
+@require_POST
+@staff_required
+def staff_blog_unpublish(request, pk):
+    post = get_object_or_404(BlogPost, pk=pk)
+    _unpublish_blog_post(request, post)
+    return redirect("staff_blog")
+
+
+@require_POST
+@staff_required
+def staff_blog_delete(request, pk):
+    post = get_object_or_404(BlogPost, pk=pk)
+    title = post.title
+    if post.featured_image:
+        post.featured_image.delete(save=False)
+    post.delete()
+    messages.success(request, f"“{title}” and its comments were deleted.")
+    return redirect("staff_blog")
+
+
+@staff_required
+def staff_blog_comments(request):
+    comments = BlogComment.objects.select_related("post").order_by("-created_at")
+    show = request.GET.get("show", "all")
+    if show == "visible":
+        comments = comments.filter(is_hidden=False)
+    elif show == "hidden":
+        comments = comments.filter(is_hidden=True)
+    context = _staff_context(
+        request,
+        "blog",
+        "Blog comments",
+        comments=comments,
+        show=show if show in {"all", "visible", "hidden"} else "all",
+        visible_count=BlogComment.objects.filter(is_hidden=False).count(),
+        hidden_count=BlogComment.objects.filter(is_hidden=True).count(),
+    )
+    return render(request, "staff/blog_comments.html", context)
+
+
+@require_POST
+@staff_required
+def staff_blog_comment_hide(request, pk):
+    comment = get_object_or_404(BlogComment, pk=pk)
+    comment.is_hidden = not comment.is_hidden
+    comment.save(update_fields=["is_hidden", "updated_at"])
+    state = "hidden" if comment.is_hidden else "visible"
+    messages.success(request, f"The comment by {comment.name} is now {state}.")
+    return redirect("staff_blog_comments")
+
+
+@require_POST
+@staff_required
+def staff_blog_comment_delete(request, pk):
+    comment = get_object_or_404(BlogComment, pk=pk)
+    name = comment.name
+    comment.delete()
+    messages.success(request, f"The comment by {name} was deleted.")
+    return redirect("staff_blog_comments")
+
+
+@staff_required
+def staff_blog_categories(request):
+    categories = BlogCategory.objects.annotate(
+        post_count=Count("posts", distinct=True)
+    ).order_by("name")
+    context = _staff_context(
+        request,
+        "blog",
+        "Blog categories",
+        categories=categories,
+        tags=BlogTag.objects.annotate(post_count=Count("posts", distinct=True)).order_by("name"),
+    )
+    return render(request, "staff/blog_categories.html", context)
+
+
+@staff_required
+def staff_blog_category_form(request, pk=None):
+    category = get_object_or_404(BlogCategory, pk=pk) if pk else None
+    if request.method == "POST":
+        form = BlogCategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            saved = form.save()
+            messages.success(request, f"Category “{saved.name}” was saved.")
+            return redirect("staff_blog_categories")
+    else:
+        form = BlogCategoryForm(instance=category)
+    context = _staff_context(
+        request,
+        "blog",
+        "Edit category" if category else "Add category",
+        form=form,
+        category=category,
+    )
+    return render(request, "staff/blog_category_form.html", context)
+
+
+@require_POST
+@staff_required
+def staff_blog_category_delete(request, pk):
+    category = get_object_or_404(BlogCategory, pk=pk)
+    name = category.name
+    category.delete()
+    messages.success(request, f"Category “{name}” was deleted. Its posts were kept as drafts without a category.")
+    return redirect("staff_blog_categories")
+
+
+@staff_required
+def staff_blog_tag_form(request, pk=None):
+    tag = get_object_or_404(BlogTag, pk=pk) if pk else None
+    if request.method == "POST":
+        form = BlogTagForm(request.POST, instance=tag)
+        if form.is_valid():
+            saved = form.save()
+            messages.success(request, f"Tag “{saved.name}” was saved.")
+            return redirect("staff_blog_categories")
+    else:
+        form = BlogTagForm(instance=tag)
+    context = _staff_context(
+        request,
+        "blog",
+        "Edit tag" if tag else "Add tag",
+        form=form,
+        tag=tag,
+    )
+    return render(request, "staff/blog_tag_form.html", context)
+
+
+@require_POST
+@staff_required
+def staff_blog_tag_delete(request, pk):
+    tag = get_object_or_404(BlogTag, pk=pk)
+    name = tag.name
+    tag.delete()
+    messages.success(request, f"Tag “{name}” was removed.")
+    return redirect("staff_blog_categories")
 
 
 # ---------------------------------------------------------------------------

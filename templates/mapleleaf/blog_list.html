@@ -1,0 +1,76 @@
+{% extends "mapleleaf/base.html" %}
+{% load static %}
+
+{% block title %}Repair Blog | Maple Leaf Auto Body &amp; Glass{% endblock %}
+{% block meta_description %}Plain-language repair, glass, maintenance and MPI claim guidance from Maple Leaf Auto Body &amp; Glass in Winnipeg.{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_type %}website{% endblock %}
+{% block og_title %}{{ og_title }}{% endblock %}
+{% block og_description %}{{ og_description }}{% endblock %}
+{% block og_url %}{{ og_url }}{% endblock %}
+{% block twitter_card %}summary{% endblock %}
+
+{% block content %}
+<section class="bg-surface pt-8 pb-10 lg:pt-12 lg:pb-12" data-rail-label="Blog">
+  <div class="page-shell">
+    <nav class="flex items-center gap-2 text-[12px] font-semibold text-on-surface-variant" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+      <span class="text-outline-variant" aria-hidden="true">/</span>
+      <span class="text-primary">Blog</span>
+    </nav>
+
+    <div class="blog-hero mt-6">
+      <div>
+        <p class="stamp text-primary">From the workshop</p>
+        <h1 class="display-2 mt-3 max-w-[18ch]">Straight answers before the repair starts.</h1>
+        <p class="lede mt-5 max-w-[58ch] text-on-surface-variant">
+          Short, practical articles on collision work, auto glass, maintenance and MPI claims — written by the same shop that does the repairs.
+        </p>
+      </div>
+      <div class="blog-hero-mark" aria-hidden="true">
+        <span class="material-symbols-outlined">menu_book</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-16 lg:pb-24">
+  <div class="page-shell blog-layout">
+    <div>
+      {% if posts.object_list %}
+      <div class="blog-grid">
+        {% for post in posts.object_list %}
+        {% include "mapleleaf/partials/blog_card.html" %}
+        {% endfor %}
+      </div>
+
+      {% if posts.has_other_pages %}
+      <nav class="blog-pagination" aria-label="Blog pagination">
+        {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}">
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+          Newer
+        </a>
+        {% endif %}
+        <span>Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+        {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}">
+          Older
+          <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+        </a>
+        {% endif %}
+      </nav>
+      {% endif %}
+      {% else %}
+      <div class="blog-empty">
+        <span class="material-symbols-outlined" aria-hidden="true">edit_note</span>
+        <h2>Articles are on the way.</h2>
+        <p>The shop is preparing its first repair guides. In the meantime, the tools page answers the questions we hear most.</p>
+        <a class="btn-primary h-11 px-5 mt-2" href="{% url 'tools' %}">Browse repair tools</a>
+      </div>
+      {% endif %}
+    </div>
+    {% include "mapleleaf/partials/blog_sidebar.html" %}
+  </div>
+</section>
+{% endblock %}

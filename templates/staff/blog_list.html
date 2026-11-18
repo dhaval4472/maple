@@ -1,0 +1,117 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-primary" href="{% url 'staff_blog_create' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">edit_note</span>
+  <span class="hidden sm:inline">Write article</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">Blog</h2>
+    <p class="staff-page-lede">Master-owned articles. Required SEO checks must pass before a draft can go live.</p>
+  </div>
+  <div class="staff-page-actions">
+    <span class="staff-count-chip">{{ published_count }} live</span>
+    <span class="staff-count-chip">{{ draft_count }} drafts</span>
+    {% if hidden_comment_count %}<span class="staff-count-chip">{{ hidden_comment_count }} hidden comments</span>{% endif %}
+  </div>
+</div>
+
+<div class="staff-banner staff-banner-info">
+  <span class="material-symbols-outlined" aria-hidden="true">fact_check</span>
+  <div>
+    <strong>Google has no pass/fail API.</strong>
+    <p>This checklist enforces objective best practices — title length, keyword placement, readable structure, internal links and safe metadata. Advisory items stay as reminders.</p>
+  </div>
+</div>
+
+<div class="staff-blog-subnav">
+  <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_categories' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">category</span>
+    Categories &amp; tags
+  </a>
+  <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_comments' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">forum</span>
+    Comments
+  </a>
+</div>
+
+<nav class="staff-tabs" aria-label="Filter articles">
+  {% for tab in status_tabs %}
+  <a class="staff-tab {% if tab.active %}is-active{% endif %}" href="{{ tab.url }}">
+    {{ tab.label }} <span>{{ tab.count }}</span>
+  </a>
+  {% endfor %}
+</nav>
+
+{% if posts %}
+<div class="staff-list">
+  {% for post in posts %}
+  <article class="staff-blog-row">
+    <div class="staff-blog-row-main">
+      <div class="staff-blog-row-top">
+        <span class="staff-status {% if post.is_published %}is-good{% else %}is-muted{% endif %}">
+          {% if post.is_published %}Published{% else %}Draft{% endif %}
+        </span>
+        {% if post.category %}<span class="staff-flag is-muted">{{ post.category.name }}</span>{% endif %}
+        {% if post.focus_keyword %}<span class="staff-flag is-muted">{{ post.focus_keyword }}</span>{% endif %}
+      </div>
+      <h3><a href="{% url 'staff_blog_edit' post.pk %}">{{ post.title }}</a></h3>
+      <p>{{ post.excerpt|truncatechars:190 }}</p>
+      <div class="staff-blog-row-meta">
+        <span>{{ post.word_count }} words</span>
+        <span>{{ post.visible_comments }} visible comments</span>
+        {% if post.hidden_comments %}<span>{{ post.hidden_comments }} hidden</span>{% endif %}
+        <span>Updated {{ post.updated_at|date:"M j, Y g:i a" }}</span>
+      </div>
+    </div>
+    <div class="staff-row-actions">
+      <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_preview' post.pk %}" target="_blank" rel="noopener">
+        <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+        Preview
+      </a>
+      <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_edit' post.pk %}">
+        <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+        Edit
+      </a>
+      {% if post.is_published %}
+      <form method="post" action="{% url 'staff_blog_unpublish' post.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="staff-btn staff-btn-secondary">
+          <span class="material-symbols-outlined" aria-hidden="true">unpublished</span>
+          Unpublish
+        </button>
+      </form>
+      {% else %}
+      <form method="post" action="{% url 'staff_blog_publish' post.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="staff-btn staff-btn-primary">
+          <span class="material-symbols-outlined" aria-hidden="true">publish</span>
+          Check &amp; publish
+        </button>
+      </form>
+      {% endif %}
+      <form method="post" action="{% url 'staff_blog_delete' post.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Delete “{{ post.title }}” and all of its comments?">
+          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          Delete
+        </button>
+      </form>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="staff-empty">
+  <span class="material-symbols-outlined" aria-hidden="true">article</span>
+  <h3>No articles in this view.</h3>
+  <p>Write the first article and the SEO checklist will guide the publish step.</p>
+  <a class="staff-btn staff-btn-primary" href="{% url 'staff_blog_create' %}">Write an article</a>
+</div>
+{% endif %}
+{% endblock %}

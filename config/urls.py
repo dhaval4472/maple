@@ -4,11 +4,20 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 
-from mapleleaf_app.sitemaps import ServiceSitemap, StaticViewSitemap
+from mapleleaf_app.sitemaps import (
+    BlogCategorySitemap,
+    BlogPostSitemap,
+    BlogTagSitemap,
+    ServiceSitemap,
+    StaticViewSitemap,
+)
 
 sitemaps = {
     "static": StaticViewSitemap,
     "services": ServiceSitemap,
+    "blog": BlogPostSitemap,
+    "blog_categories": BlogCategorySitemap,
+    "blog_tags": BlogTagSitemap,
 }
 
 urlpatterns = [

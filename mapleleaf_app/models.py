@@ -8,6 +8,7 @@ requests carry an explicit consent and retention date.
 import uuid
 from datetime import timedelta
 from decimal import Decimal
+from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -30,6 +31,11 @@ ESTIMATE_DISCLAIMER = (
 def _reference(prefix):
     stamp = timezone.now().strftime("%y%m%d")
     return f"{prefix}-{stamp}-{uuid.uuid4().hex[:5].upper()}"
+
+
+def _blog_image_path(instance, filename):
+    stem = Path(filename).stem[:60] or "blog"
+    return f"blog/{timezone.now():%Y/%m/%d}/{stem}.webp"
 
 
 class ReferenceModel(models.Model):
@@ -979,3 +985,158 @@ class AnalyticsEvent(models.Model):
 
     def __str__(self):
         return f"{self.name} · {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class BlogCategory(models.Model):
+    """A public grouping for articles, managed by the master account."""
+
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=120, unique=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Blog category"
+        verbose_name_plural = "Blog categories"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("blog_category", kwargs={"slug": self.slug})
+
+    def save(self, *args, **kwargs):
+        self.name = (self.name or "").strip()
+        super().save(*args, **kwargs)
+
+
+class BlogTag(models.Model):
+    """A reusable label for cross-linking related articles."""
+
+    name = models.CharField(max_length=80, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Blog tag"
+        verbose_name_plural = "Blog tags"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("blog_tag", kwargs={"slug": self.slug})
+
+    def save(self, *args, **kwargs):
+        self.name = (self.name or "").strip()
+        super().save(*args, **kwargs)
+
+
+class BlogPost(models.Model):
+    """A master-authored Markdown article with an enforced publish gate.
+
+    Drafts stay private. Only ``published`` posts appear in the public blog,
+    sitemap and structured data. The SEO checklist is evaluated before a post
+    can move from draft to published; see ``mapleleaf_app.blog``.
+    """
+
+    STATUS_DRAFT = "draft"
+    STATUS_PUBLISHED = "published"
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_PUBLISHED, "Published"),
+    ]
+
+    title = models.CharField(max_length=180, unique=True)
+    slug = models.SlugField(max_length=200, unique=True)
+    excerpt = models.TextField(blank=True)
+    body = models.TextField(
+        help_text="Markdown only. Raw HTML is removed when the article is rendered.",
+    )
+    focus_keyword = models.CharField(max_length=80, blank=True)
+    seo_title = models.CharField(max_length=120, blank=True)
+    meta_description = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=12,
+        choices=STATUS_CHOICES,
+        default=STATUS_DRAFT,
+        db_index=True,
+    )
+    category = models.ForeignKey(
+        BlogCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="posts",
+    )
+    tags = models.ManyToManyField(BlogTag, blank=True, related_name="posts")
+    featured_image = models.ImageField(upload_to=_blog_image_path, blank=True)
+    featured_image_alt = models.CharField(max_length=180, blank=True)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="blog_posts",
+    )
+    allow_comments = models.BooleanField(default=True)
+    published_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-published_at", "-created_at"]
+        verbose_name = "Blog post"
+        verbose_name_plural = "Blog posts"
+        indexes = [
+            models.Index(fields=["status", "published_at"]),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse("blog_post", kwargs={"slug": self.slug})
+
+    @property
+    def is_published(self):
+        return self.status == self.STATUS_PUBLISHED
+
+    @property
+    def display_title(self):
+        return (self.seo_title or self.title).strip()
+
+    @property
+    def display_description(self):
+        return (self.meta_description or self.excerpt).strip()
+
+    @property
+    def word_count(self):
+        return len((self.body or "").split())
+
+    @property
+    def reading_time_minutes(self):
+        return max(1, (self.word_count + 219) // 220)
+
+
+class BlogComment(models.Model):
+    """An instant public comment. Hidden comments never reach the article page."""
+
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name="comments")
+    name = models.CharField(max_length=100)
+    body = models.TextField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    is_hidden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "Blog comment"
+        verbose_name_plural = "Blog comments"
+
+    def __str__(self):
+        return f"{self.name} on {self.post.title}"

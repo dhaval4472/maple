@@ -19,11 +19,15 @@ from django.contrib.auth.forms import (
 from django.core.exceptions import ValidationError
 from django.core.files.images import get_image_dimensions
 from django.core.files.uploadedfile import UploadedFile
+from django.utils import timezone
 from django.utils.text import slugify
 
 from .forms import StyledFormMixin, _apply_field_styles, validate_phone
 from .images import optimize_photo_upload
 from .models import (
+    BlogCategory,
+    BlogPost,
+    BlogTag,
     BookingRequest,
     CallbackRequest,
     ClaimIntake,
@@ -44,6 +48,11 @@ STORY_IMAGE_MAX_BYTES = 12 * 1024 * 1024
 STORY_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 STORY_IMAGE_MAX_DIMENSION = 1800
 STORY_IMAGE_QUALITY = 84
+
+BLOG_IMAGE_MAX_BYTES = 12 * 1024 * 1024
+BLOG_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+BLOG_IMAGE_MAX_DIMENSION = 2000
+BLOG_IMAGE_QUALITY = 84
 
 
 class StaffFormMixin(StyledFormMixin):
@@ -899,3 +908,166 @@ class EstimateSettingsForm(StaffFormMixin, forms.ModelForm):
             if value is not None and value <= 0:
                 self.add_error(field, "The multiplier must be greater than zero.")
         return data
+
+
+# ---------------------------------------------------------------------------
+# Blog authoring
+# ---------------------------------------------------------------------------
+
+
+class BlogPostForm(StaffFormMixin, forms.ModelForm):
+    slug = forms.SlugField(required=False, label="Web address slug")
+    tags_input = forms.CharField(
+        required=False,
+        label="Tags",
+        help_text="Separate tags with commas. New tags are created automatically.",
+    )
+
+    class Meta:
+        model = BlogPost
+        fields = (
+            "title",
+            "slug",
+            "excerpt",
+            "category",
+            "tags_input",
+            "body",
+            "focus_keyword",
+            "seo_title",
+            "meta_description",
+            "featured_image",
+            "featured_image_alt",
+            "published_at",
+            "allow_comments",
+        )
+        widgets = {
+            "excerpt": forms.Textarea(attrs={"rows": 3}),
+            "body": forms.Textarea(attrs={"rows": 18, "class": "field blog-body-input"}),
+            "meta_description": forms.Textarea(attrs={"rows": 4}),
+            "published_at": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        }
+        labels = {
+            "title": "Article title",
+            "slug": "Web address slug",
+            "excerpt": "Short excerpt",
+            "category": "Category",
+            "body": "Article body (Markdown)",
+            "focus_keyword": "Focus keyword",
+            "seo_title": "SEO title",
+            "meta_description": "Meta description",
+            "featured_image": "Featured image",
+            "featured_image_alt": "Featured image alt text",
+            "published_at": "Publish date and time",
+            "allow_comments": "Allow comments on this article",
+        }
+        help_texts = {
+            "slug": "Leave blank and we will build it from the title.",
+            "seo_title": "Leave blank to use the article title. Aim for 30–60 characters.",
+            "meta_description": "Leave blank to use the excerpt. Aim for 120–160 characters.",
+            "body": "Use ## for subheadings and relative links such as /services/collision/. Raw HTML is removed.",
+            "published_at": "Leave blank to publish now. Drafts keep their saved date.",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and "tags_input" not in self.data:
+            self.fields["tags_input"].initial = ", ".join(
+                tag.name for tag in self.instance.tags.order_by("name")
+            )
+
+    def clean_slug(self):
+        slug = (self.cleaned_data.get("slug") or "").strip()
+        if not slug:
+            slug = slugify(self.cleaned_data.get("title") or "")
+        if not slug:
+            raise ValidationError("Add a title or a slug so the article has a web address.")
+        if (
+            BlogPost.objects.exclude(pk=self.instance.pk)
+            .filter(slug__iexact=slug)
+            .exists()
+        ):
+            raise ValidationError("Another article already uses that web address.")
+        return slug
+
+    def clean_published_at(self):
+        value = self.cleaned_data.get("published_at")
+        if value and timezone.is_naive(value):
+            return timezone.make_aware(value, timezone.get_current_timezone())
+        return value
+
+    def _clean_blog_image(self, upload):
+        if not isinstance(upload, UploadedFile):
+            return upload
+
+        if upload.size > BLOG_IMAGE_MAX_BYTES:
+            raise ValidationError(
+                f"The featured image must be smaller than {BLOG_IMAGE_MAX_BYTES // (1024 * 1024)} MB."
+            )
+        content_type = getattr(upload, "content_type", "").lower()
+        if content_type and content_type not in BLOG_IMAGE_TYPES:
+            raise ValidationError("Please upload a JPEG, PNG or WebP image.")
+        try:
+            width, height = get_image_dimensions(upload)
+        except Exception:
+            raise ValidationError("That file does not look like a readable image.")
+        if not width or not height:
+            raise ValidationError("That image could not be read. Please try another file.")
+        if width > 6000 or height > 6000:
+            raise ValidationError("That image is too large in pixel dimensions. Please resize it.")
+        upload.seek(0)
+        try:
+            return optimize_photo_upload(
+                upload,
+                max_dimension=BLOG_IMAGE_MAX_DIMENSION,
+                quality=BLOG_IMAGE_QUALITY,
+            )
+        except Exception:
+            raise ValidationError("That image could not be prepared. Please try a different image.")
+
+    def clean_featured_image(self):
+        return self._clean_blog_image(self.cleaned_data.get("featured_image"))
+
+    def clean(self):
+        data = super().clean()
+        image = data.get("featured_image")
+        if image and not (data.get("featured_image_alt") or "").strip():
+            self.add_error(
+                "featured_image_alt",
+                "Describe the featured image before publishing or saving it.",
+            )
+        return data
+
+
+class BlogCategoryForm(StaffFormMixin, forms.ModelForm):
+    slug = forms.SlugField(required=False, label="Web address slug")
+
+    class Meta:
+        model = BlogCategory
+        fields = ("name", "slug", "description")
+        widgets = {"description": forms.Textarea(attrs={"rows": 3})}
+        help_texts = {"slug": "Leave blank to build it from the category name."}
+
+    def clean_slug(self):
+        slug = (self.cleaned_data.get("slug") or "").strip()
+        if not slug:
+            slug = slugify(self.cleaned_data.get("name") or "")
+        if not slug:
+            raise ValidationError("Add a name or a slug.")
+        return slug
+
+
+class BlogTagForm(StaffFormMixin, forms.ModelForm):
+    slug = forms.SlugField(required=False, label="Web address slug")
+
+    class Meta:
+        model = BlogTag
+        fields = ("name", "slug")
+        help_texts = {"slug": "Leave blank to build it from the tag name."}
+
+    def clean_slug(self):
+        slug = (self.cleaned_data.get("slug") or "").strip()
+        if not slug:
+            slug = slugify(self.cleaned_data.get("name") or "")
+        if not slug:
+            raise ValidationError("Add a name or a slug.")
+        return slug

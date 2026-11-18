@@ -10,7 +10,12 @@ from django.urls import reverse
 from django.utils import timezone
 
 from mapleleaf_app import inventory
+from mapleleaf_app.blog import evaluate_seo, render_blog_markdown, render_comment
 from mapleleaf_app.models import (
+    BlogCategory,
+    BlogComment,
+    BlogPost,
+    BlogTag,
     BookingRequest,
     CallbackRequest,
     CustomerProfile,
@@ -1804,3 +1809,399 @@ class EstimateStaffTests(WorkTicketTestBase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "The multiplier must be greater than zero.")
+
+
+# ---------------------------------------------------------------------------
+# Blog
+# ---------------------------------------------------------------------------
+
+BLOG_BODY = """A windshield repair guide should start with the question every driver asks: can this chip be fixed, or does the glass need to be replaced? The answer depends on size, depth, location and whether the damage sits in the driver's line of sight. A small, clean chip away from the edge is often a good candidate for resin repair. A long crack, damage near the border, or anything that blocks clear vision usually needs a replacement.
+
+## When a chip can be repaired
+
+Resin repair works best when the damage is caught early. Dirt and moisture can get into a chip and make the repair less successful, so covering the spot with clear tape and avoiding a car wash helps until the shop sees it. Our technicians clean the area, remove debris and inject a clear resin that is cured and polished. The goal is to restore strength and clarity, not to make the damage invisible.
+
+## What happens at the shop
+
+A windshield repair guide is only useful if it explains the visit. We inspect the glass, check the damage against safety rules, and tell you whether repair or replacement is the right path. If replacement is needed, we confirm the glass options, explain any camera calibration and give you a clear time window. MPI coverage is decided by MPI, but our team can help with the repair-side paperwork and questions.
+
+## FAQ
+
+Can I drive with a chipped windshield? Small chips are often safe for a short trip, but damage in the driver's view or a spreading crack should be checked quickly. Temperature changes and road vibration can make a chip grow.
+
+Will insurance pay for the repair? MPI decides coverage based on the claim and policy. We give you the information the shop needs and explain what happens on the repair side.
+
+How long does a repair take? Many chip repairs are completed in under an hour, while replacements and calibration can take longer. We confirm timing after inspection.
+
+For related reading, see [windshield repair](/services/windshield/) and the [MPI claim navigator](/tools/mpi-claim-navigator/). For background on reporting requirements, Transport Canada publishes [vehicle defect guidance](https://tc.canada.ca/en/road-transportation/motor-vehicle-safety).
+
+A good windshield repair guide ends with a simple instruction: do not wait until the chip turns into a crack. Call the shop, send a photo, or book a drop-off window. We will look at the glass, explain the options in plain language and help you choose the safe next step before any work starts."""
+
+
+def blog_check_data(**overrides):
+    data = {
+        "title": "Windshield Repair Guide for Winnipeg Drivers",
+        "slug": "windshield-repair-guide",
+        "excerpt": (
+            "Learn when a windshield chip can be repaired, how MPI claims work, "
+            "and what to expect from a Winnipeg auto glass repair visit."
+        ),
+        "body": BLOG_BODY,
+        "focus_keyword": "windshield repair guide",
+        "seo_title": "Windshield Repair Guide for Winnipeg Drivers",
+        "meta_description": (
+            "Learn when a windshield chip can be repaired, how MPI claims work, "
+            "and what to expect from a Winnipeg auto glass repair visit."
+        ),
+    }
+    data.update(overrides)
+    return data
+
+
+def blog_form_data(category=None, **overrides):
+    data = blog_check_data()
+    data.update(
+        {
+            "category": category.pk if category else "",
+            "tags_input": "glass, MPI",
+            "published_at": "",
+            "allow_comments": "on",
+        }
+    )
+    data.update(overrides)
+    return data
+
+
+class BlogSeoTests(TestCase):
+    def test_complete_article_passes_required_checks(self):
+        report = evaluate_seo(blog_check_data())
+
+        self.assertTrue(report["passed"])
+        self.assertEqual(report["hard_failures"], [])
+        self.assertGreaterEqual(report["word_count"], 300)
+
+    def test_short_fields_and_missing_keyword_block_publishing(self):
+        data = blog_check_data(
+            seo_title="Short",
+            meta_description="Too short.",
+            body="Just a short note without the focus phrase.",
+            focus_keyword="",
+            slug="",
+        )
+        report = evaluate_seo(data)
+        labels = {check["label"] for check in report["hard_failures"]}
+
+        self.assertFalse(report["passed"])
+        self.assertIn("SEO title is 30–60 characters", labels)
+        self.assertIn("Meta description is 120–160 characters", labels)
+        self.assertIn("At least 300 words", labels)
+        self.assertIn("Focus keyword is set", labels)
+
+    def test_keyword_stuffing_blocks_publishing(self):
+        stuffed = "windshield repair guide " * 15 + "\n\n" + BLOG_BODY
+        report = evaluate_seo(blog_check_data(body=stuffed))
+        labels = {check["label"] for check in report["hard_failures"]}
+
+        self.assertFalse(report["passed"])
+        self.assertIn("Focus keyword is not stuffed", labels)
+
+    def test_featured_image_requires_alt_text(self):
+        data = blog_check_data(featured_image=True, featured_image_alt="")
+        self.assertFalse(evaluate_seo(data)["passed"])
+
+        data["featured_image_alt"] = "Technician repairing a windshield chip"
+        self.assertTrue(evaluate_seo(data)["passed"])
+
+    def test_missing_image_is_only_an_advisory(self):
+        report = evaluate_seo(blog_check_data())
+
+        self.assertTrue(report["passed"])
+        self.assertTrue(
+            any(
+                check["label"] == "Featured image added" and not check["passed"]
+                for check in report["warnings"]
+            )
+        )
+
+    def test_duplicate_title_or_slug_blocks_publishing(self):
+        post = BlogPost.objects.create(
+            status=BlogPost.STATUS_PUBLISHED,
+            published_at=timezone.now(),
+            **blog_check_data(),
+        )
+        report = evaluate_seo(blog_check_data())
+
+        self.assertFalse(report["passed"])
+        self.assertIn(
+            "Unique title and web address",
+            {check["label"] for check in report["hard_failures"]},
+        )
+
+        own_report = evaluate_seo(blog_check_data(), exclude_pk=post.pk)
+        self.assertTrue(own_report["passed"])
+
+
+class BlogMarkdownTests(TestCase):
+    def test_article_markdown_is_rendered_and_sanitised(self):
+        html = render_blog_markdown(
+            "## Safe heading\n\n<script>alert(1)</script>\n\n"
+            "[Our service](/services/windshield/)"
+        )
+
+        self.assertIn("<h2>Safe heading</h2>", html)
+        self.assertIn('href="/services/windshield/"', html)
+        self.assertNotIn("<script", html)
+        self.assertNotIn("onerror", html)
+
+    def test_comment_links_are_nofollow_and_unsafe_urls_are_removed(self):
+        html = render_comment(
+            "[Shop](https://example.com) [bad](javascript:alert(1))"
+        )
+
+        self.assertIn('rel="nofollow noopener"', html)
+        self.assertIn('href="https://example.com"', html)
+        self.assertNotIn("javascript:", html)
+
+
+class BlogStaffTests(WorkTicketTestBase):
+    def setUp(self):
+        super().setUp()
+        self.category = BlogCategory.objects.create(
+            name="Glass", slug="glass", description="Auto glass repair guides."
+        )
+
+    def test_employee_cannot_open_blog_management(self):
+        self.client.force_login(self.employee)
+        for name in ("staff_blog", "staff_blog_create", "staff_blog_categories", "staff_blog_comments"):
+            response = self.client.get(reverse(name))
+            self.assertRedirects(
+                response, reverse("staff_my_work"), fetch_redirect_response=False
+            )
+
+    def test_master_can_create_and_publish_with_good_seo(self):
+        self.client.force_login(self.master)
+        response = self.client.post(
+            reverse("staff_blog_create"),
+            blog_form_data(category=self.category, action="publish"),
+        )
+        post = BlogPost.objects.get(slug="windshield-repair-guide")
+
+        self.assertRedirects(
+            response,
+            reverse("staff_blog_edit", kwargs={"pk": post.pk}),
+            fetch_redirect_response=False,
+        )
+        self.assertTrue(post.is_published)
+        self.assertIsNotNone(post.published_at)
+        self.assertEqual(post.author, self.master)
+        self.assertTrue(post.tags.filter(slug="mpi").exists())
+
+    def test_publish_button_blocks_a_draft_that_fails_seo(self):
+        self.client.force_login(self.master)
+        self.client.post(
+            reverse("staff_blog_create"),
+            blog_form_data(
+                action="save",
+                title="Short",
+                slug="short",
+                seo_title="Short",
+                meta_description="Too short.",
+                body="A short note without the required structure.",
+            ),
+        )
+        post = BlogPost.objects.get(slug="short")
+
+        response = self.client.post(
+            reverse("staff_blog_publish", kwargs={"pk": post.pk})
+        )
+        post.refresh_from_db()
+
+        self.assertRedirects(
+            response,
+            reverse("staff_blog_edit", kwargs={"pk": post.pk}),
+            fetch_redirect_response=False,
+        )
+        self.assertFalse(post.is_published)
+
+    def test_saving_a_live_post_with_failing_seo_returns_it_to_drafts(self):
+        post = BlogPost.objects.create(
+            status=BlogPost.STATUS_PUBLISHED,
+            published_at=timezone.now(),
+            **blog_check_data(),
+        )
+        self.client.force_login(self.master)
+
+        self.client.post(
+            reverse("staff_blog_edit", kwargs={"pk": post.pk}),
+            blog_form_data(action="save", seo_title="Too short"),
+        )
+        post.refresh_from_db()
+
+        self.assertFalse(post.is_published)
+
+    def test_master_can_unpublish_and_hide_comments(self):
+        post = BlogPost.objects.create(
+            status=BlogPost.STATUS_PUBLISHED,
+            published_at=timezone.now(),
+            **blog_check_data(),
+        )
+        comment = BlogComment.objects.create(
+            post=post, name="Taylor", body="Thanks for the clear explanation."
+        )
+        self.client.force_login(self.master)
+
+        self.client.post(
+            reverse("staff_blog_comment_hide", kwargs={"pk": comment.pk})
+        )
+        comment.refresh_from_db()
+        self.assertTrue(comment.is_hidden)
+
+        self.client.post(
+            reverse("staff_blog_unpublish", kwargs={"pk": post.pk})
+        )
+        post.refresh_from_db()
+        self.assertFalse(post.is_published)
+
+    def test_master_can_manage_categories_and_tags(self):
+        self.client.force_login(self.master)
+        self.client.post(
+            reverse("staff_blog_tag_create"),
+            {"name": "MPI claims", "slug": "mpi-claims"},
+        )
+
+        self.assertTrue(BlogTag.objects.filter(slug="mpi-claims").exists())
+        self.assertTrue(BlogCategory.objects.filter(slug="glass").exists())
+
+
+class BlogPublicTests(WorkTicketTestBase):
+    def setUp(self):
+        super().setUp()
+        self.category = BlogCategory.objects.create(
+            name="Glass", slug="glass", description="Auto glass repair guides."
+        )
+        self.tag = BlogTag.objects.create(name="MPI", slug="mpi")
+        self.post = BlogPost.objects.create(
+            status=BlogPost.STATUS_PUBLISHED,
+            published_at=timezone.now(),
+            category=self.category,
+            author=self.master,
+            **blog_check_data(),
+        )
+        self.post.tags.add(self.tag)
+        self.draft = BlogPost.objects.create(
+            status=BlogPost.STATUS_DRAFT,
+            title="Private draft article about repairs",
+            slug="private-draft-article",
+            body="This draft is not public yet.",
+        )
+
+    def test_blog_list_shows_published_posts_only_with_seo_metadata(self):
+        response = self.client.get(reverse("blog"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.post.title)
+        self.assertNotContains(response, self.draft.title)
+        self.assertContains(response, 'rel="canonical"')
+        self.assertContains(response, 'property="og:title"')
+        self.assertContains(response, "application/ld+json")
+
+    def test_article_page_is_indexable_and_hits_seo_metadata(self):
+        response = self.client.get(self.post.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response, "<h2>When a chip can be repaired</h2>", html=False
+        )
+        self.assertContains(
+            response,
+            f'property="og:title" content="{self.post.display_title}"',
+        )
+        self.assertContains(response, 'property="og:type" content="article"')
+        self.assertContains(response, '"@type":"BlogPosting"')
+        self.assertContains(response, '"@type":"BreadcrumbList"')
+
+    def test_draft_is_private_but_master_can_preview_it(self):
+        self.assertEqual(
+            self.client.get(self.draft.get_absolute_url()).status_code, 404
+        )
+
+        self.client.force_login(self.master)
+        response = self.client.get(f"{self.draft.get_absolute_url()}?preview=1")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Draft preview")
+        self.assertContains(response, "noindex, nofollow")
+
+        self.client.force_login(self.employee)
+        self.assertEqual(
+            self.client.get(f"{self.draft.get_absolute_url()}?preview=1").status_code,
+            404,
+        )
+
+    def test_hidden_comments_stay_private_and_visible_links_are_nofollow(self):
+        visible = BlogComment.objects.create(
+            post=self.post,
+            name="Taylor",
+            body="See [the service page](https://example.com) for details.",
+        )
+        BlogComment.objects.create(
+            post=self.post,
+            name="Spam",
+            body="This hidden comment body should never appear in public.",
+            is_hidden=True,
+        )
+        response = self.client.get(self.post.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, visible.name)
+        self.assertContains(response, 'rel="nofollow noopener"')
+        self.assertNotContains(
+            response, "This hidden comment body should never appear in public."
+        )
+
+    def test_comment_posts_instantly_with_spam_filters(self):
+        url = self.post.get_absolute_url()
+        data = {
+            "name": "Avery",
+            "body": "This is a useful question about chip repair timing.",
+            "website": "",
+        }
+        response = self.client.post(url, data)
+
+        self.assertRedirects(response, f"{url}#comments", fetch_redirect_response=False)
+        self.assertTrue(
+            BlogComment.objects.filter(post=self.post, name="Avery").exists()
+        )
+
+        before = BlogComment.objects.count()
+        self.client.post(url, {**data, "website": "https://spam.example"})
+        self.assertEqual(BlogComment.objects.count(), before)
+
+        self.client.post(
+            url,
+            {
+                **data,
+                "body": "Links: https://a.example https://b.example https://c.example",
+            },
+        )
+        self.assertEqual(BlogComment.objects.count(), before)
+
+        self.client.post(url, data)
+        self.assertEqual(BlogComment.objects.count(), before)
+
+    def test_categories_tags_and_sitemap_include_published_content(self):
+        category_response = self.client.get(self.category.get_absolute_url())
+        tag_response = self.client.get(self.tag.get_absolute_url())
+        sitemap = self.client.get(reverse("sitemap"))
+
+        self.assertEqual(category_response.status_code, 200)
+        self.assertEqual(tag_response.status_code, 200)
+        self.assertContains(category_response, self.post.title)
+        self.assertContains(tag_response, self.post.title)
+        self.assertContains(sitemap, self.post.get_absolute_url())
+        self.assertContains(sitemap, self.category.get_absolute_url())
+        self.assertNotContains(sitemap, self.draft.get_absolute_url())
+
+    def test_public_navigation_links_to_blog(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, 'href="/blog/"')

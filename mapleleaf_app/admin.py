@@ -2,6 +2,10 @@ from django.contrib import admin
 
 from .models import (
     AnalyticsEvent,
+    BlogCategory,
+    BlogComment,
+    BlogPost,
+    BlogTag,
     BookingRequest,
     CallbackRequest,
     ClaimIntake,
@@ -233,3 +237,65 @@ class StockMovementAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(BlogCategory)
+class BlogCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "created_at")
+    search_fields = ("name", "slug", "description")
+    prepopulated_fields = {"slug": ("name",)}
+
+
+@admin.register(BlogTag)
+class BlogTagAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "created_at")
+    search_fields = ("name", "slug")
+    prepopulated_fields = {"slug": ("name",)}
+
+
+class BlogCommentInline(admin.TabularInline):
+    model = BlogComment
+    extra = 0
+    readonly_fields = ("created_at", "updated_at")
+    fields = ("name", "body", "is_hidden", "created_at")
+
+
+@admin.register(BlogPost)
+class BlogPostAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "status",
+        "category",
+        "focus_keyword",
+        "published_at",
+        "updated_at",
+    )
+    list_filter = ("status", "category", "allow_comments", "tags")
+    search_fields = ("title", "slug", "body", "excerpt", "focus_keyword", "meta_description")
+    prepopulated_fields = {"slug": ("title",)}
+    filter_horizontal = ("tags",)
+    readonly_fields = ("created_at", "updated_at", "word_count", "reading_time_minutes")
+    inlines = [BlogCommentInline]
+    fieldsets = (
+        (None, {"fields": ("title", "slug", "status", "author")}),
+        ("Content", {"fields": ("excerpt", "body", "category", "tags")}),
+        ("SEO", {"fields": ("focus_keyword", "seo_title", "meta_description")}),
+        ("Media", {"fields": ("featured_image", "featured_image_alt")}),
+        ("Discussion", {"fields": ("allow_comments", "published_at")}),
+        ("Timing", {"fields": ("created_at", "updated_at", "word_count", "reading_time_minutes")}),
+    )
+
+    def word_count(self, obj):
+        return obj.word_count
+
+    def reading_time_minutes(self, obj):
+        return f"{obj.reading_time_minutes} min read"
+
+
+@admin.register(BlogComment)
+class BlogCommentAdmin(admin.ModelAdmin):
+    list_display = ("name", "post", "is_hidden", "created_at")
+    list_filter = ("is_hidden", "created_at")
+    search_fields = ("name", "body", "post__title")
+    readonly_fields = ("ip_address", "created_at", "updated_at")
+    autocomplete_fields = ("post",)

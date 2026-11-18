@@ -1,0 +1,97 @@
+{% extends "staff/base.html" %}
+
+{% block topbar_actions %}
+<a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog' %}">
+  <span class="material-symbols-outlined" aria-hidden="true">article</span>
+  <span class="hidden sm:inline">Articles</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">Blog categories &amp; tags</h2>
+    <p class="staff-page-lede">Keep the blog tidy. New tags can also be typed straight into the article editor.</p>
+  </div>
+  <div class="staff-page-actions">
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_tag_create' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      Add tag
+    </a>
+    <a class="staff-btn staff-btn-primary" href="{% url 'staff_blog_category_create' %}">
+      <span class="material-symbols-outlined" aria-hidden="true">create_new_folder</span>
+      Add category
+    </a>
+  </div>
+</div>
+
+<div class="staff-two-col">
+  <section class="staff-card">
+    <p class="staff-kicker">Categories</p>
+    {% if categories %}
+    <div class="staff-list">
+      {% for category in categories %}
+      <div class="staff-blog-row">
+        <div class="staff-blog-row-main">
+          <h3>{{ category.name }}</h3>
+          <p>/{{ category.slug }}/ · {{ category.post_count }} article{{ category.post_count|pluralize }}</p>
+          {% if category.description %}<p>{{ category.description|truncatechars:140 }}</p>{% endif %}
+        </div>
+        <div class="staff-row-actions">
+          <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_category_edit' category.pk %}">
+            <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+            Edit
+          </a>
+          <form method="post" action="{% url 'staff_blog_category_delete' category.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Delete the category “{{ category.name }}”? Its posts will be kept.">
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="staff-empty staff-empty-compact">
+      <p>No categories yet. Add one to group related articles.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="staff-card">
+    <p class="staff-kicker">Tags</p>
+    {% if tags %}
+    <div class="staff-list">
+      {% for tag in tags %}
+      <div class="staff-blog-row">
+        <div class="staff-blog-row-main">
+          <h3>{{ tag.name }}</h3>
+          <p>/{{ tag.slug }}/ · {{ tag.post_count }} article{{ tag.post_count|pluralize }}</p>
+        </div>
+        <div class="staff-row-actions">
+          <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_tag_edit' tag.pk %}">
+            <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+            Edit
+          </a>
+          <form method="post" action="{% url 'staff_blog_tag_delete' tag.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="staff-btn staff-btn-danger-ghost" data-confirm="Delete the tag “{{ tag.name }}”? Its posts will be kept.">
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="staff-empty staff-empty-compact">
+      <p>No tags yet. Add one here or type it into an article.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_blog_categories' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to categories &amp; tags
+  </a>
+</div>
+
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">{% if category %}Edit category{% else %}Add category{% endif %}</h2>
+    <p class="staff-page-lede">Categories group articles into clear, linkable topics.</p>
+  </div>
+</div>
+
+<form method="post" class="staff-form-layout" novalidate>
+  {% csrf_token %}
+  <section class="staff-card">
+    {% if form.non_field_errors %}<div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>{% endif %}
+    <div class="staff-form-grid">
+      <div>
+        <label class="field-label" for="{{ form.name.id_for_label }}">Name</label>
+        {{ form.name }}
+        {% if form.name.errors %}<p class="field-error">{{ form.name.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="field-label" for="{{ form.slug.id_for_label }}">Web address slug</label>
+        {{ form.slug }}
+        {% if form.slug.errors %}<p class="field-error">{{ form.slug.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.slug.help_text }}</p>
+      </div>
+      <div class="staff-form-span-2">
+        <label class="field-label" for="{{ form.description.id_for_label }}">Description</label>
+        {{ form.description }}
+        {% if form.description.errors %}<p class="field-error">{{ form.description.errors.0 }}</p>{% endif %}
+      </div>
+    </div>
+  </section>
+  <div class="staff-form-actions">
+    <button type="submit" class="staff-btn staff-btn-primary">
+      <span class="material-symbols-outlined" aria-hidden="true">save</span>
+      Save category
+    </button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "staff/base.html" %}
+
+{% block content %}
+<div class="staff-detail-back">
+  <a class="staff-text-link" href="{% url 'staff_blog' %}">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    Back to blog
+  </a>
+</div>
+
+<div class="staff-page-intro">
+  <div>
+    <p class="staff-kicker">Website content</p>
+    <h2 class="staff-page-title">{% if is_new %}Write an article{% else %}Edit article{% endif %}</h2>
+    <p class="staff-page-lede">Markdown body. Required SEO checks run live below and decide whether the publish buttons work.</p>
+  </div>
+  {% if post %}
+  <div class="staff-page-actions">
+    <span class="staff-status {% if post.is_published %}is-good{% else %}is-muted{% endif %}">
+      {% if post.is_published %}Published{% else %}Draft{% endif %}
+    </span>
+    <a class="staff-btn staff-btn-secondary" href="{% url 'staff_blog_preview' post.pk %}" target="_blank" rel="noopener">
+      <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+      Preview
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<section class="staff-seo-panel {% if seo.passed %}is-ready{% else %}is-blocked{% endif %}" aria-live="polite">
+  <div class="staff-seo-head">
+    <span class="material-symbols-outlined" aria-hidden="true">{% if seo.passed %}verified{% else %}gpp_maybe{% endif %}</span>
+    <div>
+      <h3>{% if seo.passed %}Ready to publish{% else %}Publish is blocked{% endif %}</h3>
+      <p>
+        {{ seo.hard_failures|length }} required check{{ seo.hard_failures|length|pluralize }} failing ·
+        {{ seo.advisories|length }} advisory suggestion{{ seo.advisories|length|pluralize }} ·
+        {{ seo.word_count }} words
+      </p>
+    </div>
+  </div>
+
+  <div class="staff-seo-grid">
+    <div>
+      <p class="staff-seo-label">Required — these block publishing</p>
+      <div class="staff-seo-list">
+        {% for check in seo.hard %}
+        <div class="staff-seo-check {% if check.passed %}is-pass{% else %}is-fail{% endif %}">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if check.passed %}check_circle{% else %}error{% endif %}</span>
+          <div>
+            <strong>{{ check.label }}</strong>
+            <p>{{ check.detail }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      <p class="staff-seo-label">Advisory — reminders only</p>
+      <div class="staff-seo-list">
+        {% for check in seo.warnings %}
+        <div class="staff-seo-check {% if check.passed %}is-pass{% else %}is-warn{% endif %}">
+          <span class="material-symbols-outlined" aria-hidden="true">{% if check.passed %}check_circle{% else %}info{% endif %}</span>
+          <div>
+            <strong>{{ check.label }}</strong>
+            <p>{{ check.detail }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<form method="post" enctype="multipart/form-data" class="staff-form-layout" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="staff-form-error" role="alert">{{ form.non_field_errors.0 }}</div>
+  {% endif %}
+
+  <section class="staff-card">
+    <p class="staff-kicker">Article</p>
+    <div class="staff-form-grid">
+      <div class="staff-form-span-2">
+        <label class="field-label" for="{{ form.title.id_for_label }}">Article title <span class="text-primary">*</span></label>
+        {{ form.title }}
+        {% if form.title.errors %}<p class="field-error">{{ form.title.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="field-label" for="{{ form.slug.id_for_label }}">Web address slug</label>
+        {{ form.slug }}
+        {% if form.slug.errors %}<p class="field-error">{{ form.slug.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.slug.help_text }}</p>
+      </div>
+      <div>
+        <label class="field-label" for="{{ form.category.id_for_label }}">Category</label>
+        {{ form.category }}
+        {% if form.category.errors %}<p class="field-error">{{ form.category.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="staff-form-span-2">
+        <label class="field-label" for="{{ form.tags_input.id_for_label }}">Tags</label>
+        {{ form.tags_input }}
+        {% if form.tags_input.errors %}<p class="field-error">{{ form.tags_input.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.tags_input.help_text }}</p>
+      </div>
+      <div class="staff-form-span-2">
+        <label class="field-label" for="{{ form.excerpt.id_for_label }}">Short excerpt</label>
+        {{ form.excerpt }}
+        {% if form.excerpt.errors %}<p class="field-error">{{ form.excerpt.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">Used on blog cards and as the meta description fallback.</p>
+      </div>
+      <div class="staff-form-span-2">
+        <label class="field-label" for="{{ form.body.id_for_label }}">Article body (Markdown) <span class="text-primary">*</span></label>
+        {{ form.body }}
+        {% if form.body.errors %}<p class="field-error">{{ form.body.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.body.help_text }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="staff-card">
+    <p class="staff-kicker">Search metadata</p>
+    <div class="staff-form-grid">
+      <div>
+        <label class="field-label" for="{{ form.focus_keyword.id_for_label }}">Focus keyword</label>
+        {{ form.focus_keyword }}
+        {% if form.focus_keyword.errors %}<p class="field-error">{{ form.focus_keyword.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="field-label" for="{{ form.seo_title.id_for_label }}">SEO title</label>
+        {{ form.seo_title }}
+        {% if form.seo_title.errors %}<p class="field-error">{{ form.seo_title.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.seo_title.help_text }}</p>
+      </div>
+      <div class="staff-form-span-2">
+        <label class="field-label" for="{{ form.meta_description.id_for_label }}">Meta description</label>
+        {{ form.meta_description }}
+        {% if form.meta_description.errors %}<p class="field-error">{{ form.meta_description.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.meta_description.help_text }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="staff-card">
+    <p class="staff-kicker">Image &amp; discussion</p>
+    <div class="staff-form-grid">
+      <div>
+        <label class="field-label" for="{{ form.featured_image.id_for_label }}">Featured image</label>
+        {{ form.featured_image }}
+        {% if form.featured_image.errors %}<p class="field-error">{{ form.featured_image.errors.0 }}</p>{% endif %}
+        {% if post and post.featured_image %}
+        <div class="staff-current-image">
+          <img src="{{ post.featured_image.url }}" alt="Current featured image"/>
+          <span>Current featured image</span>
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <label class="field-label" for="{{ form.featured_image_alt.id_for_label }}">Featured image alt text</label>
+        {{ form.featured_image_alt }}
+        {% if form.featured_image_alt.errors %}<p class="field-error">{{ form.featured_image_alt.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="field-label" for="{{ form.published_at.id_for_label }}">Publish date and time</label>
+        {{ form.published_at }}
+        {% if form.published_at.errors %}<p class="field-error">{{ form.published_at.errors.0 }}</p>{% endif %}
+        <p class="staff-field-help">{{ form.published_at.help_text }}</p>
+      </div>
+      <div class="staff-checkbox-field">
+        {{ form.allow_comments }}
+        <label class="field-label mb-0" for="{{ form.allow_comments.id_for_label }}">Allow comments on this article</label>
+      </div>
+    </div>
+  </section>
+
+  <div class="staff-form-actions">
+    {% if post %}
+    <button type="submit" name="action" value="save" class="staff-btn staff-btn-secondary">
+      <span class="material-symbols-outlined" aria-hidden="true">save</span>
+      Save changes
+    </button>
+    {% if post.is_published %}
+    <button type="submit" name="action" value="unpublish" class="staff-btn staff-btn-secondary">
+      <span class="material-symbols-outlined" aria-hidden="true">unpublished</span>
+      Move to drafts
+    </button>
+    {% endif %}
+    {% else %}
+    <button type="submit" name="action" value="save" class="staff-btn staff-btn-secondary">
+      <span class="material-symbols-outlined" aria-hidden="true">save</span>
+      Save draft
+    </button>
+    {% endif %}
+    <button type="submit" name="action" value="publish" class="staff-btn staff-btn-primary">
+      <span class="material-symbols-outlined" aria-hidden="true">publish</span>
+      Check &amp; publish
+    </button>
+  </div>
+</form>
+{% endblock %}

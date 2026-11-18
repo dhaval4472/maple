@@ -1,3 +1,5 @@
 Django==6.1.2
 pillow==12.1.1
 gunicorn>=23,<24
+markdown-it-py==4.3.0
+bleach==6.4.0
